@@ -18,8 +18,8 @@ public class Day05 {
         }
 
         //  create the stacks of crates
-        List<Stack<String>> crateStacks = new ArrayList<>();
-        List<String> crateStackStrings = new ArrayList<>();
+        List<Stack<String>> crateStacks = new ArrayList<>(); // part 1
+        List<String> crateStrings = new ArrayList<>(); // part 2
 
         int indexOfEmptyLine = 0;
         for (int i = 0; i < data.size(); i++) {
@@ -58,7 +58,7 @@ public class Day05 {
             while(it.hasNext()) {
                 letterStack += it.next().toString();
             }
-            crateStackStrings.add(letterStack);
+            crateStrings.add(letterStack);
         }
 
         //  run through the instructions
@@ -74,24 +74,21 @@ public class Day05 {
                 crateStacks.get(toStack).add(crateStacks.get(fromStack).pop());
             }
 
-            //  part 2: just use strings
-            String stackTakingFrom = crateStackStrings.get(fromStack);
-            String stackAddingTo = crateStackStrings.get(toStack);
-            String cratesToMove = crateStackStrings.get(fromStack).substring(crateStackStrings.get(fromStack).length() - num);
-            String depletedStack = crateStackStrings.get(fromStack).substring(0, stackTakingFrom.length() - num);
-            stackAddingTo += cratesToMove;
-            crateStackStrings.set(toStack, stackAddingTo);
-            crateStackStrings.set(fromStack, depletedStack);
+            //  part 2: eh... just use strings
+            String newTallerStack = crateStrings.get(toStack);
+            String newShorterStack = crateStrings.get(fromStack).substring(0, crateStrings.get(fromStack).length() - num);
+            String cratesToMove = crateStrings.get(fromStack).substring(crateStrings.get(fromStack).length() - num);
+            newTallerStack += cratesToMove;
+            crateStrings.set(toStack, newTallerStack);
+            crateStrings.set(fromStack, newShorterStack);
         }
-        String msg = "";
-        for (int i = 0; i < crateStacks.size(); i++) {
-            msg += crateStacks.get(i).peek();
+        String msgPt1 = "";
+        String msgPt2 = "";
+        for (int i = 0; i < largestCrate; i++) {
+            msgPt1 += crateStacks.get(i).peek();
+            msgPt2 += crateStrings.get(i).charAt(crateStrings.get(i).length() - 1);
         }
-
-        System.out.println("Part 1: " + msg);
-        System.out.print("Part 2: ");
-        for (int i = 0; i < crateStackStrings.size(); i++) {
-            System.out.print(crateStackStrings.get(i).charAt(crateStackStrings.get(i).length() - 1));
-        }
+        System.out.println("Part 1: " + msgPt1);
+        System.out.print("Part 2: " + msgPt2);
     }
 }
