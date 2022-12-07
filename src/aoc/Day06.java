@@ -32,7 +32,7 @@ public class Day06 {
             }
             indx++;
         }
-        System.out.println("Part 1: " + (indx + 1));
+        System.out.println("Answer: " + (indx + 1));
     }
 
     private static boolean allCharsAreDifferent(Character[] charArray) {
