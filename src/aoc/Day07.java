@@ -6,7 +6,8 @@ import java.util.List;
 import java.util.Scanner;
 
 public class Day07 {
-    final String dataFile = ""
+    final static Long TOTAL_DISK_SIZE = 70000000L;
+    final static Long NEEDED_SPACE = 30000000L;
     private static class Directory {
         final Long MAX_SIZE = 100000L;
         public final String name;
@@ -61,6 +62,17 @@ public class Day07 {
                 return totalSubdirSize;
             }
         }
+
+        public Long getSizeOfMinSubdirectory(Long sizeNeeded) {
+            Long minSizeNeeded = getSize();
+            for (Directory dir : subDirectories) {
+                Long subDirSize = dir.getSizeOfMinSubdirectory(sizeNeeded);
+                if (subDirSize >= sizeNeeded && subDirSize < minSizeNeeded) {
+                    minSizeNeeded = subDirSize;
+                }
+            }
+            return minSizeNeeded;
+        }
     }
 
     private static class ElfFile {
@@ -74,22 +86,23 @@ public class Day07 {
 
     public static void main(String[] args) throws Exception {
         List<String> data = new ArrayList<>();
-        try (final Scanner scanner = new Scanner(new File("testData/Day07.txt"))) {
+        try (final Scanner scanner = new Scanner(new File("data/Day07.txt"))) {
             while (scanner.hasNext()) {
                 data.add(scanner.nextLine());
             }
         }
         Directory root = createFilesystem(data);
-        System.out.println("Total size of root: " + root.getSize());
-        System.out.println("Total size of max dirs: " + root.getSizeBelowMax());
+        System.out.println("Part 1: Total size of max dirs: " + root.getSizeBelowMax());
 
+        Long rootSize = root.getSize();
+        Long needToFree = NEEDED_SPACE - (TOTAL_DISK_SIZE - rootSize);
+        System.out.println("Part 2: Smallest directory to delete: " + root.getSizeOfMinSubdirectory(needToFree));
     }
 
     private static Directory createFilesystem(List<String> data) {
         Directory rootDirectory = new Directory("/", null);
         Directory currentDirectory = rootDirectory;
 
-        //  create the filesystem
         for (String line : data) {
             String[] termOutput = line.split(" " );
 
