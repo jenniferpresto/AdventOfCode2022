@@ -6,10 +6,10 @@ import java.util.List;
 import java.util.Scanner;
 
 public class Day07 {
+    final static Long MAX_SIZE = 100000L;
     final static Long TOTAL_DISK_SIZE = 70000000L;
     final static Long NEEDED_SPACE = 30000000L;
     private static class Directory {
-        final Long MAX_SIZE = 100000L;
         public final String name;
         public final Directory parent;
         public final List<Directory> subDirectories;
