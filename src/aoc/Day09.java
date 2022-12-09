@@ -2,9 +2,14 @@ package aoc;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Scanner;
+import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -21,10 +26,23 @@ public class Day09 {
         public String toString() {
             return "(" + x + "," + y + ")";
         }
+        @Override
+        public boolean equals(Object o) {
+            if (o == this) return true;
+            if (o.getClass() != this.getClass()) {
+                return false;
+            }
+            GridPoint other = (GridPoint)o;
+            return this.x == other.x && this.y == other.y;
+        }
+        @Override
+        public int hashCode() {
+            return Objects.hash(this.x, this.y);
+        }
     }
     public static void main(String[] args) {
         List<String> data = new ArrayList<>();
-        try (final Scanner scanner = new Scanner(new File("testData/Day09.txt"))) {
+        try (final Scanner scanner = new Scanner(new File("data/Day09.txt"))) {
             while (scanner.hasNext()) {
                 data.add(scanner.nextLine());
             }
@@ -32,6 +50,12 @@ public class Day09 {
             System.out.println("Oops... " + e.getMessage());
             return;
         }
+
+//        Set<GridPoint> tailTrail = new HashSet<>();
+//        Map<Integer, Set<Integer>> tailTrail = new HashMap<>();
+
+        List<GridPoint> tailTrail = new ArrayList<>();
+
 
 //        //  create grids
 //        SortedMap<Integer, SortedMap<Integer, Integer>> liveGrid = new TreeMap<>();
@@ -46,6 +70,7 @@ public class Day09 {
         GridPoint tail = new GridPoint(0, 4);
         GridPoint topLeft = new GridPoint(0, 0);
         GridPoint bottomRight = new GridPoint(5, 4);
+        addPointToTailTrail(tail, tailTrail);
 
         System.out.println("Starting: " + head + ", " + tail);
         for (String line : data) {
@@ -55,17 +80,17 @@ public class Day09 {
                     System.out.println("Up " + instruction[1]);
                     for (int j = 0; j < Integer.valueOf(instruction[1]); j++) {
                         head.y--;
-                        moveTail(head, tail);
+                        moveTail(head, tail, tailTrail);
 //                        System.out.println("head: " + head + ", tail: " + tail);
-                        printCurrentGrid(topLeft, bottomRight, head, tail);
+//                        printCurrentGrid(topLeft, bottomRight, head, tail);
                     }
                     break;
                 case "D":
                     System.out.println("Down " + instruction[1]);
                     for (int j = 0; j < Integer.valueOf(instruction[1]); j++) {
                         head.y++;
-                        moveTail(head, tail);
-                        printCurrentGrid(topLeft, bottomRight, head, tail);
+                        moveTail(head, tail, tailTrail);
+//                        printCurrentGrid(topLeft, bottomRight, head, tail);
 //                        System.out.println("head: " + head + ", tail: " + tail);
                     }
                     break;
@@ -73,18 +98,18 @@ public class Day09 {
                     System.out.println("Left " + instruction[1]);
                     for (int j = 0; j < Integer.valueOf(instruction[1]); j++) {
                         head.x--;
-                        moveTail(head, tail);
+                        moveTail(head, tail, tailTrail);
 //                        System.out.println("head: " + head + ", tail: " + tail);
-                        printCurrentGrid(topLeft, bottomRight, head, tail);
+//                        printCurrentGrid(topLeft, bottomRight, head, tail);
                     }
                     break;
                 case "R":
                     System.out.println("Right " + instruction[1]);
                     for (int j = 0; j < Integer.valueOf(instruction[1]); j++) {
                         head.x++;
-                        moveTail(head, tail);
+                        moveTail(head, tail, tailTrail);
 //                        System.out.println("head: " + head + ", tail: " + tail);
-                        printCurrentGrid(topLeft, bottomRight, head, tail);
+//                        printCurrentGrid(topLeft, bottomRight, head, tail);
                     }
                     break;
                 default:
@@ -93,15 +118,29 @@ public class Day09 {
             adjustSmallestAndLargest(head, topLeft, bottomRight);
         }
         System.out.println("Top left: " + topLeft + ", bottom right: " + bottomRight);
+        int numSpacesTailVisited = 0;
+//        Iterator ttIterator = tailTrail.entrySet().iterator();
+//        while(ttIterator.hasNext()) {
+//            Map<Integer, Set<Integer>> column = (Map<Integer>)ttIterator.next();
+//            numSpacesTailVisited += column.size();
+//        }
+
+//        for(Set<Integer> col : tailTrail.values()) {
+//            numSpacesTailVisited += col.size();
+//        }
+
+        System.out.println("How many spots for the tail? " + tailTrail.size());
     }
 
-    public static void moveTail(GridPoint head, GridPoint tail) {
+    public static void moveTail(GridPoint head, GridPoint tail, List<GridPoint> tailTrail) {
         if (Math.abs(head.x - tail.x) < 2 && Math.abs(head.y - tail.y) < 2) {
             System.out.println("don't need to do anything, turning a corner or just starting out");
             return;
         }
         if (head.x == tail.x) {
-            moveTailLeftOrRight(head, tail);
+            moveTailLeftOrRight(head, tail, tailTrail);
+            addPointToTailTrail(tail, tailTrail);
+
             return;
 //            if (head.y > tail.y) {
 //                tail.y++;
@@ -110,7 +149,8 @@ public class Day09 {
 //            }
         }
         if (head.y == tail.y) {
-            moveTailUpOrDown(head, tail);
+            moveTailUpOrDown(head, tail, tailTrail);
+            addPointToTailTrail(tail, tailTrail);
             return;
 //            if (head.x > tail.x) {
 //                tail.x++;
@@ -119,26 +159,58 @@ public class Day09 {
 //            }
         }
         //  diagonal move
-        moveTailLeftOrRight(head, tail);
-        moveTailUpOrDown(head, tail);
+        moveTailLeftOrRight(head, tail, tailTrail);
+        moveTailUpOrDown(head, tail, tailTrail);
+        addPointToTailTrail(tail, tailTrail);
 //            tail.y += (head.y - tail.y);
+
 
     }
 
-    static public void moveTailLeftOrRight(GridPoint head, GridPoint tail) {
+    static public void moveTailLeftOrRight(GridPoint head, GridPoint tail, List<GridPoint> tailTrail) {
         if (head.y > tail.y) {
             tail.y++;
         } else {
             tail.y--;
         }
+//        addPointToTailTrail(tail, tailTrail);
     }
 
-    static public void moveTailUpOrDown(GridPoint head, GridPoint tail) {
+    static public void moveTailUpOrDown(GridPoint head, GridPoint tail, List<GridPoint> tailTrail) {
         if (head.x > tail.x) {
             tail.x++;
         } else {
             tail.x--;
         }
+//        addPointToTailTrail(tail, tailTrail);
+    }
+
+    static public void addPointToTailTrail(GridPoint tail, List<GridPoint> tailTrail) {
+        for (GridPoint point : tailTrail) {
+            if (point.equals(tail)) {
+                System.out.println("We already have this one: " + tail);
+                return;
+            }
+        }
+        GridPoint tailCopy = new GridPoint(tail.x, tail.y);
+        tailTrail.add(tailCopy);
+//        GridPoint newPoint = new GridPoint(tail.x, tail.y);
+//        if (tailTrail.entrySet().contains(tail.x)) {
+//            if (tailTrail.get(tail.x).contains(tail.y)) {
+//                System.out.println("We already have this one" + tail);
+//            } else {
+//                tailTrail.get(tail.x).add(tail.y);
+//            }
+//        } else {
+//            Set<Integer> newColumn = new HashSet<>();
+//            newColumn.add(tail.y);
+//            tailTrail.put(tail.x, newColumn);
+//        }
+//        if (tailTrail.contains(newPoint)) {
+//            System.out.println("We already have this point");
+//        } else {
+//            tailTrail.add(newPoint);
+//        }
     }
 
     public static void adjustSmallestAndLargest(GridPoint head, GridPoint topLeft, GridPoint bottomRight) {
