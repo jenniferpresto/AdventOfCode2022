@@ -2,16 +2,11 @@ package aoc;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Scanner;
 import java.util.Set;
-import java.util.SortedMap;
-import java.util.TreeMap;
 
 public class Day09 {
     public static final int NUM_KNOTS = 10; // 2 for part 1; 10 for part 2
@@ -51,22 +46,23 @@ public class Day09 {
             return;
         }
 
-//        Set<GridPoint> tailTrail = new HashSet<>();
-//        Map<Integer, Set<Integer>> tailTrail = new HashMap<>();
+        Set<GridPoint> tailTrail = new HashSet<>();
         List<GridPoint> rope = new ArrayList<>();
-        //  wildly inefficient, I know...
-        List<GridPoint> tailTrail = new ArrayList<>();
 
+        //  Initialize values:
+        //  starting values are all arbitrary; chosen to print sample data most easily
         GridPoint head = new GridPoint(0, 4);
         GridPoint tail = new GridPoint(0, 4);
         GridPoint topLeft = new GridPoint(0, 0);
         GridPoint bottomRight = new GridPoint(5, 4);
+
         for (int i = 0; i < NUM_KNOTS; i++) {
             rope.add(new GridPoint(0, 4));
         }
         addPointToTailTrail(tail, tailTrail);
 
-        System.out.println("Starting: " + head + ", " + tail);
+        //  Execute the instructions
+        //  Each one moves the head one space and makes the rest of the rope follow it
         for (String line : data) {
             String[] instruction = line.split(" ");
             switch(instruction[0]) {
@@ -74,78 +70,75 @@ public class Day09 {
 //                    System.out.println("Up " + instruction[1]);
                     for (int j = 0; j < Integer.valueOf(instruction[1]); j++) {
                         rope.get(0).y--;
-                        moveRope(rope, tailTrail);
+                        moveRope(rope);
                         addPointToTailTrail(rope.get(rope.size()-1), tailTrail);
-//                        printGridWithLongerRope(topLeft, bottomRight, rope);
+//                        printGridAndRope(topLeft, bottomRight, rope);
                     }
                     break;
                 case "D":
 //                    System.out.println("Down " + instruction[1]);
                     for (int j = 0; j < Integer.valueOf(instruction[1]); j++) {
                         rope.get(0).y++;
-                        moveRope(rope, tailTrail);
+                        moveRope(rope);
                         addPointToTailTrail(rope.get(rope.size()-1), tailTrail);
-//                        printGridWithLongerRope(topLeft, bottomRight, rope);
+//                        printGridAndRope(topLeft, bottomRight, rope);
                     }
                     break;
                 case "L":
 //                    System.out.println("Left " + instruction[1]);
                     for (int j = 0; j < Integer.valueOf(instruction[1]); j++) {
                         rope.get(0).x--;
-                        moveRope(rope, tailTrail);
+                        moveRope(rope);
                         addPointToTailTrail(rope.get(rope.size()-1), tailTrail);
-//                        printGridWithLongerRope(topLeft, bottomRight, rope);
+//                        printGridAndRope(topLeft, bottomRight, rope);
                     }
                     break;
                 case "R":
 //                    System.out.println("Right " + instruction[1]);
                     for (int j = 0; j < Integer.valueOf(instruction[1]); j++) {
                         rope.get(0).x++;
-                        moveRope(rope, tailTrail);
+                        moveRope(rope);
                         addPointToTailTrail(rope.get(rope.size()-1), tailTrail);
-//                        printGridWithLongerRope(topLeft, bottomRight, rope);
+//                        printGridAndRope(topLeft, bottomRight, rope);
                     }
                     break;
                 default:
                     System.out.println("That's unexpected");
             }
-            adjustSmallestAndLargest(head, topLeft, bottomRight);
+//            adjustSmallestAndLargest(rope.get(0), topLeft, bottomRight); // only used for printing grid
         }
-        System.out.println("Top left: " + topLeft + ", bottom right: " + bottomRight);
         System.out.println("How many spots for the tail? " + tailTrail.size());
     }
 
     /**
      * Head is already at new point when this is called
      * @param rope
-     * @param tailTrail
      */
-    public static void moveRope(List<GridPoint> rope, List<GridPoint> tailTrail) {
+    public static void moveRope(List<GridPoint> rope) {
         for (int i = 1; i < rope.size(); i++) {
-            GridPoint head = rope.get(i-1);
-            moveTail(head, rope.get(i), tailTrail);
+            moveNextKnot(rope.get(i-1), rope.get(i));
         }
     }
 
-    public static void moveTail(GridPoint head, GridPoint tail, List<GridPoint> tailTrail) {
-        if (Math.abs(head.x - tail.x) < 2 && Math.abs(head.y - tail.y) < 2) {
+    public static void moveNextKnot(GridPoint current, GridPoint next) {
+        if (Math.abs(current.x - next.x) < 2 && Math.abs(current.y - next.y) < 2) {
 //            System.out.println("don't need to do anything, turning a corner or just starting out");
             return;
         }
-        if (head.x == tail.x) {
-            moveTailLeftOrRight(head, tail, tailTrail);
+        if (current.x == next.x) {
+            moveKnotLeftOrRight(current, next);
             return;
         }
-        if (head.y == tail.y) {
-            moveTailUpOrDown(head, tail, tailTrail);
+        if (current.y == next.y) {
+            moveKnotUpOrDown(current, next);
             return;
         }
         //  diagonal move
-        moveTailLeftOrRight(head, tail, tailTrail);
-        moveTailUpOrDown(head, tail, tailTrail);
+        moveKnotLeftOrRight(current, next);
+        moveKnotUpOrDown(current, next);
     }
 
-    static public void moveTailLeftOrRight(GridPoint head, GridPoint tail, List<GridPoint> tailTrail) {
+    static public void moveKnotLeftOrRight(GridPoint head, GridPoint tail) {
         if (head.y > tail.y) {
             tail.y++;
         } else {
@@ -153,7 +146,7 @@ public class Day09 {
         }
     }
 
-    static public void moveTailUpOrDown(GridPoint head, GridPoint tail, List<GridPoint> tailTrail) {
+    static public void moveKnotUpOrDown(GridPoint head, GridPoint tail) {
         if (head.x > tail.x) {
             tail.x++;
         } else {
@@ -161,34 +154,14 @@ public class Day09 {
         }
     }
 
-    static public void addPointToTailTrail(GridPoint tail, List<GridPoint> tailTrail) {
-        for (GridPoint point : tailTrail) {
-            if (point.equals(tail)) {
-                System.out.println("We already have this one: " + tail);
-                return;
-            }
+    static public void addPointToTailTrail(GridPoint tail, Set<GridPoint> tailTrail) {
+        if (!tailTrail.contains(tail)) {
+            GridPoint tailCopy = new GridPoint(tail.x, tail.y);
+            tailTrail.add(tailCopy);
         }
-        GridPoint tailCopy = new GridPoint(tail.x, tail.y);
-        tailTrail.add(tailCopy);
-//        GridPoint newPoint = new GridPoint(tail.x, tail.y);
-//        if (tailTrail.entrySet().contains(tail.x)) {
-//            if (tailTrail.get(tail.x).contains(tail.y)) {
-//                System.out.println("We already have this one" + tail);
-//            } else {
-//                tailTrail.get(tail.x).add(tail.y);
-//            }
-//        } else {
-//            Set<Integer> newColumn = new HashSet<>();
-//            newColumn.add(tail.y);
-//            tailTrail.put(tail.x, newColumn);
-//        }
-//        if (tailTrail.contains(newPoint)) {
-//            System.out.println("We already have this point");
-//        } else {
-//            tailTrail.add(newPoint);
-//        }
     }
 
+    //  just for debugging/seeing
     public static void adjustSmallestAndLargest(GridPoint head, GridPoint topLeft, GridPoint bottomRight) {
         if (head.x < topLeft.x) {
             topLeft.x = head.x;
@@ -204,31 +177,8 @@ public class Day09 {
         }
     }
 
-    public static void printCurrentGrid(GridPoint topLeft, GridPoint bottomRight, GridPoint head, GridPoint tail) {
-        for (int i = topLeft.x; i < bottomRight.x + 1; i++)  {
-            System.out.print("*");
-        }
-        System.out.println("");
-        for (int y = topLeft.y; y < bottomRight.y + 1; y++) {
-
-            for (int x = topLeft.x; x < bottomRight.x + 1; x++) {
-                if (x == head.x && y == head.y) {
-                    System.out.print("H");
-                } else if (x == tail.x && y == tail.y) {
-                    System.out.print("T");
-                } else {
-                    System.out.print(".");
-                }
-            }
-            System.out.println("");
-        }
-        for (int i = topLeft.x; i < bottomRight.x + 1; i++)  {
-            System.out.print("*");
-        }
-        System.out.println("");
-    }
-
-    public static void printGridWithLongerRope(GridPoint topLeft, GridPoint bottomRight, List<GridPoint> rope) {
+    //  just for debugging/seeing
+    public static void printGridAndRope(GridPoint topLeft, GridPoint bottomRight, List<GridPoint> rope) {
         for (int i = topLeft.x; i < bottomRight.x + 1; i++)  {
             System.out.print("*");
         }
@@ -242,7 +192,11 @@ public class Day09 {
                     String pointString = ".";
                     for (int i = rope.size()-1; i > 0; i-- ) {
                         if (x == rope.get(i).x && y == rope.get(i).y) {
-                            pointString = String.valueOf(i);
+                            if (NUM_KNOTS == 2) {
+                                pointString = "T";
+                            } else {
+                                pointString = String.valueOf(i);
+                            }
                         }
                     }
                     System.out.print(pointString);
