@@ -54,7 +54,7 @@ public class Day09 {
 //        Set<GridPoint> tailTrail = new HashSet<>();
 //        Map<Integer, Set<Integer>> tailTrail = new HashMap<>();
         List<GridPoint> rope = new ArrayList<>();
-
+        //  wildly inefficient, I know...
         List<GridPoint> tailTrail = new ArrayList<>();
 
         GridPoint head = new GridPoint(0, 4);
@@ -71,12 +71,8 @@ public class Day09 {
             String[] instruction = line.split(" ");
             switch(instruction[0]) {
                 case "U":
-                    System.out.println("Up " + instruction[1]);
+//                    System.out.println("Up " + instruction[1]);
                     for (int j = 0; j < Integer.valueOf(instruction[1]); j++) {
-//                        head.y--;
-//                        moveTail(head, tail, tailTrail);
-//                        System.out.println("head: " + head + ", tail: " + tail);
-//                        printCurrentGrid(topLeft, bottomRight, head, tail);
                         rope.get(0).y--;
                         moveRope(rope, tailTrail);
                         addPointToTailTrail(rope.get(rope.size()-1), tailTrail);
@@ -84,12 +80,8 @@ public class Day09 {
                     }
                     break;
                 case "D":
-                    System.out.println("Down " + instruction[1]);
+//                    System.out.println("Down " + instruction[1]);
                     for (int j = 0; j < Integer.valueOf(instruction[1]); j++) {
-//                        head.y++;
-//                        moveTail(head, tail, tailTrail);
-//                        printCurrentGrid(topLeft, bottomRight, head, tail);
-//                        System.out.println("head: " + head + ", tail: " + tail);
                         rope.get(0).y++;
                         moveRope(rope, tailTrail);
                         addPointToTailTrail(rope.get(rope.size()-1), tailTrail);
@@ -97,12 +89,8 @@ public class Day09 {
                     }
                     break;
                 case "L":
-                    System.out.println("Left " + instruction[1]);
+//                    System.out.println("Left " + instruction[1]);
                     for (int j = 0; j < Integer.valueOf(instruction[1]); j++) {
-//                        head.x--;
-//                        moveTail(head, tail, tailTrail);
-//                        System.out.println("head: " + head + ", tail: " + tail);
-//                        printCurrentGrid(topLeft, bottomRight, head, tail);
                         rope.get(0).x--;
                         moveRope(rope, tailTrail);
                         addPointToTailTrail(rope.get(rope.size()-1), tailTrail);
@@ -110,12 +98,8 @@ public class Day09 {
                     }
                     break;
                 case "R":
-                    System.out.println("Right " + instruction[1]);
+//                    System.out.println("Right " + instruction[1]);
                     for (int j = 0; j < Integer.valueOf(instruction[1]); j++) {
-//                        head.x++;
-//                        moveTail(head, tail, tailTrail);
-//                        System.out.println("head: " + head + ", tail: " + tail);
-//                        printCurrentGrid(topLeft, bottomRight, head, tail);
                         rope.get(0).x++;
                         moveRope(rope, tailTrail);
                         addPointToTailTrail(rope.get(rope.size()-1), tailTrail);
@@ -128,17 +112,6 @@ public class Day09 {
             adjustSmallestAndLargest(head, topLeft, bottomRight);
         }
         System.out.println("Top left: " + topLeft + ", bottom right: " + bottomRight);
-        int numSpacesTailVisited = 0;
-//        Iterator ttIterator = tailTrail.entrySet().iterator();
-//        while(ttIterator.hasNext()) {
-//            Map<Integer, Set<Integer>> column = (Map<Integer>)ttIterator.next();
-//            numSpacesTailVisited += column.size();
-//        }
-
-//        for(Set<Integer> col : tailTrail.values()) {
-//            numSpacesTailVisited += col.size();
-//        }
-
         System.out.println("How many spots for the tail? " + tailTrail.size());
     }
 
@@ -161,32 +134,15 @@ public class Day09 {
         }
         if (head.x == tail.x) {
             moveTailLeftOrRight(head, tail, tailTrail);
-//            addPointToTailTrail(tail, tailTrail);
-
             return;
-//            if (head.y > tail.y) {
-//                tail.y++;
-//            } else {
-//                tail.y--;
-//            }
         }
         if (head.y == tail.y) {
             moveTailUpOrDown(head, tail, tailTrail);
-//            addPointToTailTrail(tail, tailTrail);
             return;
-//            if (head.x > tail.x) {
-//                tail.x++;
-//            } else {
-//                tail.x--;
-//            }
         }
         //  diagonal move
         moveTailLeftOrRight(head, tail, tailTrail);
         moveTailUpOrDown(head, tail, tailTrail);
-//        addPointToTailTrail(tail, tailTrail);
-//            tail.y += (head.y - tail.y);
-
-
     }
 
     static public void moveTailLeftOrRight(GridPoint head, GridPoint tail, List<GridPoint> tailTrail) {
@@ -195,7 +151,6 @@ public class Day09 {
         } else {
             tail.y--;
         }
-//        addPointToTailTrail(tail, tailTrail);
     }
 
     static public void moveTailUpOrDown(GridPoint head, GridPoint tail, List<GridPoint> tailTrail) {
@@ -204,7 +159,6 @@ public class Day09 {
         } else {
             tail.x--;
         }
-//        addPointToTailTrail(tail, tailTrail);
     }
 
     static public void addPointToTailTrail(GridPoint tail, List<GridPoint> tailTrail) {
