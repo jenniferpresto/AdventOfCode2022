@@ -10,6 +10,8 @@ import java.util.Set;
 
 public class Day09 {
     public static final int NUM_KNOTS = 10; // 2 for part 1; 10 for part 2
+    public static GridPoint topLeft = new GridPoint(0, 0);
+    public static GridPoint bottomRight = new GridPoint(4, 4);
     public static class GridPoint {
         int x;
         int y;
@@ -35,6 +37,7 @@ public class Day09 {
             return Objects.hash(this.x, this.y);
         }
     }
+
     public static void main(String[] args) {
         List<String> data = new ArrayList<>();
         try (final Scanner scanner = new Scanner(new File("data/Day09.txt"))) {
@@ -51,15 +54,10 @@ public class Day09 {
 
         //  Initialize values:
         //  starting values are all arbitrary; chosen to print sample data most easily
-        GridPoint head = new GridPoint(0, 4);
-        GridPoint tail = new GridPoint(0, 4);
-        GridPoint topLeft = new GridPoint(0, 0);
-        GridPoint bottomRight = new GridPoint(5, 4);
-
         for (int i = 0; i < NUM_KNOTS; i++) {
             rope.add(new GridPoint(0, 4));
         }
-        addPointToTailTrail(tail, tailTrail);
+        addPointToTailTrail(rope.get(rope.size()-1), tailTrail);
 
         //  Execute the instructions
         //  Each one moves the head one space and makes the rest of the rope follow it
@@ -70,44 +68,42 @@ public class Day09 {
 //                    System.out.println("Up " + instruction[1]);
                     for (int j = 0; j < Integer.valueOf(instruction[1]); j++) {
                         rope.get(0).y--;
-                        moveRope(rope);
-                        addPointToTailTrail(rope.get(rope.size()-1), tailTrail);
-//                        printGridAndRope(topLeft, bottomRight, rope);
+                        moveAndRecord(rope, tailTrail);
                     }
                     break;
                 case "D":
 //                    System.out.println("Down " + instruction[1]);
                     for (int j = 0; j < Integer.valueOf(instruction[1]); j++) {
                         rope.get(0).y++;
-                        moveRope(rope);
-                        addPointToTailTrail(rope.get(rope.size()-1), tailTrail);
-//                        printGridAndRope(topLeft, bottomRight, rope);
+                        moveAndRecord(rope, tailTrail);
                     }
                     break;
                 case "L":
 //                    System.out.println("Left " + instruction[1]);
                     for (int j = 0; j < Integer.valueOf(instruction[1]); j++) {
                         rope.get(0).x--;
-                        moveRope(rope);
-                        addPointToTailTrail(rope.get(rope.size()-1), tailTrail);
-//                        printGridAndRope(topLeft, bottomRight, rope);
+                        moveAndRecord(rope, tailTrail);
                     }
                     break;
                 case "R":
 //                    System.out.println("Right " + instruction[1]);
                     for (int j = 0; j < Integer.valueOf(instruction[1]); j++) {
                         rope.get(0).x++;
-                        moveRope(rope);
-                        addPointToTailTrail(rope.get(rope.size()-1), tailTrail);
-//                        printGridAndRope(topLeft, bottomRight, rope);
+                        moveAndRecord(rope, tailTrail);
                     }
                     break;
                 default:
                     System.out.println("That's unexpected");
             }
-//            adjustSmallestAndLargest(rope.get(0), topLeft, bottomRight); // only used for printing grid
+            adjustSmallestAndLargest(rope.get(0), topLeft, bottomRight); // only used for printing grid
         }
         System.out.println("How many spots for the tail? " + tailTrail.size());
+    }
+
+    public static void moveAndRecord(List<GridPoint> rope, Set<GridPoint> tailTrail) {
+        moveRope(rope);
+        addPointToTailTrail(rope.get(rope.size()-1), tailTrail);
+        printGridAndRope(rope);
     }
 
     /**
@@ -178,7 +174,7 @@ public class Day09 {
     }
 
     //  just for debugging/seeing
-    public static void printGridAndRope(GridPoint topLeft, GridPoint bottomRight, List<GridPoint> rope) {
+    public static void printGridAndRope(List<GridPoint> rope) {
         for (int i = topLeft.x; i < bottomRight.x + 1; i++)  {
             System.out.print("*");
         }
