@@ -7,10 +7,19 @@ import java.util.Scanner;
 
 public class Day10 {
     private static class IntWrapper {
-        int strength = 0;
+        int value = 0;
 
-        public void addStrength(int s) {
-            this.strength += s;
+        IntWrapper() {}
+        IntWrapper(int i) {
+            this.value = i;
+        }
+
+        public void addValue(int s) {
+            this.value += s;
+        }
+
+        public void increment() {
+            this.value++;
         }
     }
 
@@ -25,38 +34,39 @@ public class Day10 {
             return;
         }
 
-        int cycle = 0;
-        int x = 1;
+        IntWrapper cycleNum = new IntWrapper();
         IntWrapper signalStrength = new IntWrapper();
+        IntWrapper spritePos = new IntWrapper(1);
         for (String line : data) {
             String[] instructions = line.split(" ");
             if (instructions[0].startsWith("addx")) {
-                cycle++;
-                drawCycle(cycle, x);
-                calculateStrength(cycle, x, signalStrength);
-                cycle++;
-                drawCycle(cycle, x);
-                calculateStrength(cycle, x, signalStrength);
-                x += Integer.valueOf(instructions[1]);
+                executeCycle(cycleNum, spritePos, signalStrength);
+                executeCycle(cycleNum, spritePos, signalStrength);
+                spritePos.addValue(Integer.valueOf(instructions[1]));
             } else if (instructions[0].startsWith("noop")) {
-                cycle++;
-                drawCycle(cycle, x);
-                calculateStrength(cycle, x, signalStrength);
+                executeCycle(cycleNum, spritePos, signalStrength);
             }
         }
-        System.out.println("Total signal strength is " + signalStrength.strength);
+        System.out.println("");
+        System.out.println("Total signal strength is " + signalStrength.value);
 
     }
 
-    private static void calculateStrength(int cycle, int x, IntWrapper s) {
-        if ((cycle + 20) % 40 == 0) {
-            s.addStrength((cycle * x));
+    private static void executeCycle(IntWrapper cycleNum, IntWrapper spritePos, IntWrapper signalStrength) {
+        cycleNum.increment();
+        drawCycle(cycleNum, spritePos);
+        calculateStrength(cycleNum, spritePos, signalStrength);
+    }
+
+    private static void calculateStrength(IntWrapper cycle, IntWrapper spritePos, IntWrapper s) {
+        if ((cycle.value + 20) % 40 == 0) {
+            s.addValue((cycle.value * spritePos.value));
         }
     }
 
-    private static void drawCycle(int cycle, int x) {
-        int drawPos = (cycle-1) % 40;
-        if (x >= drawPos - 1 && x <= drawPos + 1) {
+    private static void drawCycle(IntWrapper cycleNum, IntWrapper spritePos) {
+        int drawPos = (cycleNum.value-1) % 40;
+        if (spritePos.value >= drawPos - 1 && spritePos.value <= drawPos + 1) {
             System.out.print("#");
         } else {
             System.out.print(".");
@@ -65,5 +75,4 @@ public class Day10 {
             System.out.print("\n");
         }
     }
-
 }
