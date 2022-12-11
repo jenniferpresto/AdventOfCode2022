@@ -9,14 +9,35 @@ import java.util.Queue;
 import java.util.Scanner;
 
 public class Day11 {
+
     public static final boolean PART_1 = false;
     public static final int NUM_ROUNDS = PART_1 ? 20 : 10000;
     public static long LEAST_COMMON_MULT = 1;
+    private interface MonkeyOperator {
+        public long operate(long a, long b);
+    }
+
+    private static class Adder implements MonkeyOperator {
+        @Override
+        public long operate(long a, long b) {
+            return a + b;
+        }
+    }
+
+    private static class Multiplier implements MonkeyOperator {
+        @Override
+        public long operate(long a, long b) {
+            return a * b;
+        }
+    }
+
     private static class Monkey {
         final int id;
         long numInspections = 0;
         Queue<Long> items = new LinkedList<>();
-        String operation = "";
+        MonkeyOperator operator;
+        String valueA = "";
+        String valueB = "";
         int testDivisor = 1;
         Monkey trueRecipient;
         Monkey falseRecipient;
@@ -37,18 +58,9 @@ public class Day11 {
             if (top > LEAST_COMMON_MULT) {
                 top = top % LEAST_COMMON_MULT;
             }
-
-            String[] splitOperation = operation.split(" ");
-            Long firstValue = splitOperation[0].equals("old") ? top.longValue() : Integer.valueOf(splitOperation[0]);
-            Long secondValue = splitOperation[2].equals("old") ? top.longValue() : Integer.valueOf(splitOperation[2]);
-            //  inspect it and do operation
-            if (splitOperation[1].equals("+")) {
-                top = firstValue + secondValue;
-            } else if (splitOperation[1].equals("*")) {
-                top = firstValue * secondValue;
-            } else {
-                System.out.println("whoops...");
-            }
+            Long firstValue = valueA.equals("old") ? top.longValue() : Long.valueOf(valueA);
+            Long secondValue = valueB.equals("old") ? top.longValue() : Long.valueOf(valueB);
+            top = operator.operate(firstValue, secondValue);
             if (PART_1) {
                 //  get bored, mitigate worry
                 top = Math.floorDiv(top, 3);
@@ -93,7 +105,9 @@ public class Day11 {
                     monkeys.get(currentMonkey).items.add(Long.valueOf(item));
                 }
             } else if (trimmed.startsWith("Operation")) {
-                monkeys.get(currentMonkey).operation = line.substring(line.indexOf('=') + 2);
+                monkeys.get(currentMonkey).valueA = splitLine[3];
+                monkeys.get(currentMonkey).valueB = splitLine[5];
+                monkeys.get(currentMonkey).operator = splitLine[4].equals("+") ? new Adder() : new Multiplier();
             } else if (trimmed.startsWith("Test")) {
                 monkeys.get(currentMonkey).testDivisor = Integer.valueOf(splitLine[3]);
             } else if (trimmed.startsWith("If true:")) {
