@@ -31,6 +31,9 @@ public class Day11 {
         }
     }
 
+    private static MonkeyOperator ADDER = new Adder();
+    private static MonkeyOperator MULTIPLIER = new Multiplier();
+
     private static class Monkey {
         final int id;
         long numInspections = 0;
@@ -107,7 +110,7 @@ public class Day11 {
             } else if (trimmed.startsWith("Operation")) {
                 monkeys.get(currentMonkey).valueA = splitLine[3];
                 monkeys.get(currentMonkey).valueB = splitLine[5];
-                monkeys.get(currentMonkey).operator = splitLine[4].equals("+") ? new Adder() : new Multiplier();
+                monkeys.get(currentMonkey).operator = splitLine[4].equals("+") ? ADDER : MULTIPLIER;
             } else if (trimmed.startsWith("Test")) {
                 monkeys.get(currentMonkey).testDivisor = Integer.valueOf(splitLine[3]);
             } else if (trimmed.startsWith("If true:")) {
