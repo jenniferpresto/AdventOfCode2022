@@ -2,6 +2,7 @@ package aoc;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -91,8 +92,8 @@ public class Day12 {
         long shortestDist = Long.MAX_VALUE;
         for (int y = 0; y < heightmap[0].length; y++) {
             for (int x = 0; x < heightmap.length; x++) {
-                clearDistancesAndPathsInMap(heightmap);
                 if (heightmap[x][y].label == 'a') {
+                    clearDistancesAndPathsInMap(heightmap);
                     long dist = calculateShortestPathBetweenLocations(heightmap[x][y], endLoc, heightmap);
                     if (dist < shortestDist) {
                         shortestDist = dist;
