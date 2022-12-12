@@ -14,20 +14,19 @@ public class Day12 {
         final int x;
         final int y;
         final char label;
-        int value;
+        final int value;
         long shortestDistance = Long.MAX_VALUE;
-        boolean tested = false;
-        List<Loc> shortestPath;
+        List<Loc> shortestPath; // unnecessary for challenge, but nice for debugging
 
-        Loc(int x, int y, char label) {
+        Loc(int x, int y, char label, char value) {
             this.x = x;
             this.y = y;
             this.label = label;
-            value = label;
+            this.value = value;
         }
 
         public String printLabel() {
-            return String.valueOf(label);
+            return String.valueOf(this.label);
         }
 
         @Override
@@ -64,22 +63,23 @@ public class Day12 {
 
         final int width = data.get(0).length();
         final int height = data.size();
-        Loc[][] heightmap = new Loc[width][height];
+        final Loc[][] heightmap = new Loc[width][height];
         Loc originalStartLoc = null;
         Loc endLoc = null;
 
         //  initialize map
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
-                Loc loc = new Loc(x, y, data.get(y).charAt(x));
-                if (loc.label == 'S') {
-                    loc.value = 'a';
-                    originalStartLoc = loc;
-                } else if (loc.label == 'E') {
-                    endLoc = loc;
-                    loc.value = 'z';
+                char label = data.get(y).charAt(x);
+                if (label == 'S') {
+                    heightmap[x][y] = new Loc(x, y, label, 'a');
+                    originalStartLoc = heightmap[x][y];
+                } else if (label == 'E') {
+                    heightmap[x][y] = new Loc(x, y, label, 'z');
+                    endLoc = heightmap[x][y];
+                } else {
+                    heightmap[x][y] = new Loc(x, y, label, label);
                 }
-                heightmap[x][y] = loc;
             }
         }
 
@@ -112,17 +112,17 @@ public class Day12 {
         }
     }
 
-    static long calculateShortestPathBetweenLocations(Loc startLoc, Loc endLoc, Loc[][] heightMap) {
-        Set<Loc> settledLocations = new HashSet<>();
-        Set<Loc> unsettledLocations = new HashSet<>();
+    static long calculateShortestPathBetweenLocations(final Loc startLoc, final Loc endLoc, final Loc[][] heightMap) {
+        final Set<Loc> settledLocations = new HashSet<>();
+        final Set<Loc> unsettledLocations = new HashSet<>();
         startLoc.shortestPath = new LinkedList<>();
         startLoc.shortestPath.add(startLoc);
         startLoc.shortestDistance = 0;
         unsettledLocations.add(startLoc);
         while(!unsettledLocations.isEmpty()) {
-            Loc currentLoc = getShortestDistanceLoc(unsettledLocations);
+            final Loc currentLoc = getShortestDistanceLoc(unsettledLocations);
             unsettledLocations.remove(currentLoc);
-            Set<Loc> adjacentLocs = getAdjacentLocations(currentLoc, heightMap);
+            final Set<Loc> adjacentLocs = getAdjacentLocations(currentLoc, heightMap);
             for (Loc adjacentLoc : adjacentLocs) {
                 if (!settledLocations.contains(adjacentLoc)) {
                     calculateDist(adjacentLoc, currentLoc);
@@ -134,8 +134,8 @@ public class Day12 {
         return endLoc.shortestDistance;
     }
 
-    static void calculateDist(Loc evaluationLoc, Loc sourceLoc) {
-        long sourceDist = sourceLoc.shortestDistance;
+    static void calculateDist(final Loc evaluationLoc, final Loc sourceLoc) {
+        final long sourceDist = sourceLoc.shortestDistance;
         if (sourceDist + 1 < evaluationLoc.shortestDistance) {
             List<Loc> shortestPath = new LinkedList<>(sourceLoc.shortestPath);
             shortestPath.add(evaluationLoc);
@@ -143,7 +143,7 @@ public class Day12 {
             evaluationLoc.shortestPath = shortestPath;
         }
     }
-    static Loc getShortestDistanceLoc(Set<Loc> unsettledLocations) {
+    static Loc getShortestDistanceLoc(final Set<Loc> unsettledLocations) {
         Loc shortestDistLoc = null;
         long testedShortestDist = Long.MAX_VALUE;
         for (Loc loc : unsettledLocations) {
@@ -155,8 +155,8 @@ public class Day12 {
         return shortestDistLoc;
     }
 
-    static Set<Loc> getAdjacentLocations(Loc loc, Loc[][] fullMap) {
-        Set<Loc> adjacentSet = new HashSet<>();
+    static Set<Loc> getAdjacentLocations(final Loc loc, final Loc[][] fullMap) {
+        final Set<Loc> adjacentSet = new HashSet<>();
         if (loc.x > 0 && fullMap[loc.x-1][loc.y].value - 1 <= loc.value) {
             adjacentSet.add(fullMap[loc.x-1][loc.y]);
         }
@@ -172,7 +172,7 @@ public class Day12 {
         return adjacentSet;
     }
 
-    static void printAllLoc(Loc[][] map) {
+    static void printAllLoc(final Loc[][] map) {
         final int width = map.length;
         final int height = map[0].length;
         for (int i = 0; i < 9; i++) {
@@ -190,7 +190,7 @@ public class Day12 {
         System.out.print("\n");
     }
 
-    static void printMap(Loc[][] map) {
+    static void printMap(final Loc[][] map) {
         final int width = map.length;
         final int height = map[0].length;
         for (int i = 0; i < width; i++) {
