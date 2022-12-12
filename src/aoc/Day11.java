@@ -141,8 +141,9 @@ public class Day11 {
 
         //  sort the monkeys by level of activity
         monkeys.sort(Comparator.comparingLong(Monkey::getNumInspections).reversed());
+        String partLabel = PART_1 ? "Part 1: " : "Part 2: ";
 
-        System.out.println("Level of monkey business: " + (monkeys.get(0).getNumInspections() * monkeys.get(1).getNumInspections()));
+        System.out.println(partLabel + "Level of monkey business: " + (monkeys.get(0).getNumInspections() * monkeys.get(1).getNumInspections()));
     }
 
     //  no zeroes or negative values

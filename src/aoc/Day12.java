@@ -1,0 +1,182 @@
+package aoc;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Scanner;
+import java.util.Set;
+
+public class Day12 {
+    private static class Loc {
+        final int x;
+        final int y;
+        final char label;
+        int value;
+        long shortestDistance = Long.MAX_VALUE;
+        boolean tested = false;
+        List<Loc> shortestPath;
+
+        Loc(int x, int y, char label) {
+            this.x = x;
+            this.y = y;
+            this.label = label;
+            value = label;
+        }
+
+        public String printLabel() {
+            return String.valueOf(label);
+        }
+
+        @Override
+        public String toString() {
+            return "(" + this.x + "," + this.y + "): "
+                    + String.valueOf(this.label)
+                    + ", height " + this.value
+                    + ", dist: " + this.shortestDistance;
+        }
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || o.getClass() != getClass()) return false;
+            Loc other = (Loc)o;
+            if (this.x == other.x && this.y == other.y) return true;
+            return false;
+        }
+        @Override
+        public int hashCode() {
+            return Objects.hash(this.x, this.y);
+        }
+    }
+
+    public static void main(String[] args) {
+        List<String> data = new ArrayList<>();
+        try (final Scanner scanner = new Scanner(new File("data/Day12.txt"))) {
+            while (scanner.hasNext()) {
+                data.add(scanner.nextLine());
+            }
+        } catch (Exception e) {
+            System.out.println("Oops... " + e.getMessage());
+            return;
+        }
+
+        final int width = data.get(0).length();
+        final int height = data.size();
+        Loc[][] heightmap = new Loc[width][height];
+        Set<Loc> settledLocations = new HashSet<>();
+        Set<Loc> unsettledLocations = new HashSet<>();
+        Loc startLoc = null;
+        Loc endLoc = null;
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                Loc loc = new Loc(x, y, data.get(y).charAt(x));
+                if (loc.label == 'S') {
+                    loc.shortestDistance = 0;
+                    loc.shortestPath = new LinkedList<>();
+                    loc.shortestPath.add(loc);
+                    loc.value = Integer.MAX_VALUE;
+                    startLoc = loc;
+                    unsettledLocations.add(loc);
+                } else if (loc.label == 'E') {
+                    endLoc = loc;
+                    loc.value = 'z';
+                }
+                heightmap[x][y] = loc;
+            }
+        }
+        while(!unsettledLocations.isEmpty()) {
+            Loc currentLoc = getShortestDistanceLoc(unsettledLocations);
+            unsettledLocations.remove(currentLoc);
+            Set<Loc> adjacentLocs = getAdjacentLocations(currentLoc, heightmap);
+            for (Loc adjacentLoc : adjacentLocs) {
+                if (!settledLocations.contains(adjacentLoc)) {
+                    calculateDist(adjacentLoc, currentLoc);
+                    unsettledLocations.add(adjacentLoc);
+                }
+            }
+            settledLocations.add(currentLoc);
+            int jennifer = 9;
+        }
+
+        printMap(heightmap);
+        System.out.println("Part 1: Shortest dist to end location: " + endLoc.shortestDistance);
+//        printAllLoc(heightmap);
+    }
+
+    static void calculateDist(Loc evaluationLoc, Loc sourceLoc) {
+        long sourceDist = sourceLoc.shortestDistance;
+        if (sourceDist + 1 < evaluationLoc.shortestDistance) {
+            List<Loc> shortestPath = new LinkedList<>(sourceLoc.shortestPath);
+            shortestPath.add(evaluationLoc);
+            evaluationLoc.shortestDistance = sourceDist + 1;
+            evaluationLoc.shortestPath = shortestPath;
+        }
+    }
+    static Loc getShortestDistanceLoc(Set<Loc> unsettledLocations) {
+        Loc shortestDistLoc = null;
+        long testedShortestDist = Long.MAX_VALUE;
+        for (Loc loc : unsettledLocations) {
+            if (loc.shortestDistance < testedShortestDist) {
+                shortestDistLoc = loc;
+                testedShortestDist = loc.shortestDistance;
+            }
+        }
+        return shortestDistLoc;
+    }
+
+    static Set<Loc> getAdjacentLocations(Loc loc, Loc[][] fullMap) {
+        Set<Loc> adjacentSet = new HashSet<>();
+        if (loc.x > 0 && fullMap[loc.x-1][loc.y].value - 1 <= loc.value) {
+            adjacentSet.add(fullMap[loc.x-1][loc.y]);
+        }
+        if (loc.x < fullMap.length - 1 && fullMap[loc.x+1][loc.y].value - 1 <= loc.value) {
+            adjacentSet.add(fullMap[loc.x+1][loc.y]);
+        }
+        if (loc.y > 0 && fullMap[loc.x][loc.y-1].value - 1 <= loc.value) {
+            adjacentSet.add(fullMap[loc.x][loc.y-1]);
+        }
+        if (loc.y < fullMap[0].length - 1 && fullMap[loc.x][loc.y+1].value - 1  <= loc.value) {
+            adjacentSet.add(fullMap[loc.x][loc.y+1]);
+        }
+        return adjacentSet;
+    }
+
+    static void printAllLoc(Loc[][] map) {
+        final int width = map.length;
+        final int height = map[0].length;
+        for (int i = 0; i < 9; i++) {
+            System.out.print("#");
+        }
+        System.out.print("\n");
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                System.out.println(map[x][y]);
+            }
+        }
+        for (int i = 0; i < 9; i++) {
+            System.out.print("#");
+        }
+        System.out.print("\n");
+    }
+
+    static void printMap(Loc[][] map) {
+        final int width = map.length;
+        final int height = map[0].length;
+        for (int i = 0; i < width; i++) {
+            System.out.print("#");
+        }
+        System.out.print("\n");
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                System.out.print(map[x][y].printLabel());
+            }
+            System.out.print("\n");
+        }
+        for (int i = 0; i < width; i++) {
+            System.out.print("#");
+        }
+        System.out.print("\n");
+    }
+}
