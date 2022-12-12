@@ -65,20 +65,16 @@ public class Day12 {
         final int width = data.get(0).length();
         final int height = data.size();
         Loc[][] heightmap = new Loc[width][height];
-        Set<Loc> settledLocations = new HashSet<>();
-        Set<Loc> unsettledLocations = new HashSet<>();
-        Loc startLoc = null;
+        Loc originalStartLoc = null;
         Loc endLoc = null;
+
+        //  initialize map
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
                 Loc loc = new Loc(x, y, data.get(y).charAt(x));
                 if (loc.label == 'S') {
-                    loc.shortestDistance = 0;
-                    loc.shortestPath = new LinkedList<>();
-                    loc.shortestPath.add(loc);
-                    loc.value = Integer.MAX_VALUE;
-                    startLoc = loc;
-                    unsettledLocations.add(loc);
+                    loc.value = 'a';
+                    originalStartLoc = loc;
                 } else if (loc.label == 'E') {
                     endLoc = loc;
                     loc.value = 'z';
@@ -86,10 +82,47 @@ public class Day12 {
                 heightmap[x][y] = loc;
             }
         }
+
+        //  Part 1
+        calculateShortestPathBetweenLocations(originalStartLoc, endLoc, heightmap);
+        System.out.println("Part 1: Shortest dist to end location: " + endLoc.shortestDistance);
+
+        //  Part 2
+        long shortestDist = Long.MAX_VALUE;
+        for (int y = 0; y < heightmap[0].length; y++) {
+            for (int x = 0; x < heightmap.length; x++) {
+                clearDistancesAndPathsInMap(heightmap);
+                if (heightmap[x][y].label == 'a') {
+                    long dist = calculateShortestPathBetweenLocations(heightmap[x][y], endLoc, heightmap);
+                    if (dist < shortestDist) {
+                        shortestDist = dist;
+                    }
+                }
+            }
+        }
+        System.out.println("Part 2: Shortest distance from best starting point: " + shortestDist);
+    }
+
+    static void clearDistancesAndPathsInMap(Loc[][] grid) {
+        for (int y = 0; y < grid[0].length; y++) {
+            for (int x = 0; x < grid.length; x++) {
+                grid[x][y].shortestDistance = Long.MAX_VALUE;
+                grid[x][y].shortestPath = null;
+            }
+        }
+    }
+
+    static long calculateShortestPathBetweenLocations(Loc startLoc, Loc endLoc, Loc[][] heightMap) {
+        Set<Loc> settledLocations = new HashSet<>();
+        Set<Loc> unsettledLocations = new HashSet<>();
+        startLoc.shortestPath = new LinkedList<>();
+        startLoc.shortestPath.add(startLoc);
+        startLoc.shortestDistance = 0;
+        unsettledLocations.add(startLoc);
         while(!unsettledLocations.isEmpty()) {
             Loc currentLoc = getShortestDistanceLoc(unsettledLocations);
             unsettledLocations.remove(currentLoc);
-            Set<Loc> adjacentLocs = getAdjacentLocations(currentLoc, heightmap);
+            Set<Loc> adjacentLocs = getAdjacentLocations(currentLoc, heightMap);
             for (Loc adjacentLoc : adjacentLocs) {
                 if (!settledLocations.contains(adjacentLoc)) {
                     calculateDist(adjacentLoc, currentLoc);
@@ -97,12 +130,8 @@ public class Day12 {
                 }
             }
             settledLocations.add(currentLoc);
-            int jennifer = 9;
         }
-
-        printMap(heightmap);
-        System.out.println("Part 1: Shortest dist to end location: " + endLoc.shortestDistance);
-//        printAllLoc(heightmap);
+        return endLoc.shortestDistance;
     }
 
     static void calculateDist(Loc evaluationLoc, Loc sourceLoc) {
