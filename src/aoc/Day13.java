@@ -13,34 +13,36 @@ public class Day13 {
         String definingString = "";
         int beginningIndex = 0;
         int endIndex = 0;
-        List<Packet> subPackets;
-        List<Integer> values;
+        List<Packet> subPackets = new ArrayList<>();
         Integer value;
+
+        public boolean isValuePacket() {
+            if (!subPackets.isEmpty() && value != null) {
+                System.out.println("There's been a terrible mistake");
+            }
+            return value != null;
+        }
 
         @Override
         public String toString() {
             String string = "";
-            if (subPackets != null) {
+            if (!subPackets.isEmpty() && value != null) {
+                string += "SOMETHING IS WRONG HERE";
+            }
+            if (!subPackets.isEmpty()) {
                 string += "[";
                 for (int i = 0; i < subPackets.size(); i++) {
                     String comma = i == (subPackets.size() - 1) ? "" : ",";
                     string += subPackets.get(i).toString() + comma;
                 }
                 string += "]";
-            }
-            else if (value != null) {
-                string += value.toString();
-            } else if (value == null && subPackets == null) {
-                string += "[]";
             } else {
-                string += "SOMETHING IS WRONG; SHOULD NOT HAVE NON-NULL VALUES AND SUBPACKETS";
+                if (value == null) {
+                    string += "[]";
+                } else {
+                    string += value.toString();
+                }
             }
-//            if (values != null) {
-//                for (int i = 0; i < values.size(); i++) {
-//                    String comma = i == (values.size() - 1) ? "" : ",";
-//                    string += values.get(i).toString() + comma;
-//                }
-//            }
             return string;
         }
     }
@@ -56,19 +58,103 @@ public class Day13 {
             return;
         }
 
-        int flag = 0;
         List<Packet> allPackets = new ArrayList<>();
-//        Packet root = new Packet();
-//        allPackets.add(createPacketFromString(root, data.get(4), 1));
         for (String line : data) {
             if (!line.isBlank()) {
+                if (allPackets.size() == 10) {
+                    int jennifer = 9;
+                }
                 Packet root = new Packet();
                 allPackets.add(createPacketFromString(root, line, 1));
             }
-//            flag++;
-//            if (flag > 1) break;
         }
+//        boolean rightOrder = packetsAreInRightOrder(allPackets.get(14), allPackets.get(15));
+
+        int pairIndex = 1;
+        int sumOfIndices = 0;
+        for (int i = 0; i < allPackets.size(); i+=2) {
+            System.out.print("Pair " + pairIndex + ": Comparing " + i + " to " + (i + 1) + ": ");
+            if (packetsAreInRightOrder(allPackets.get(i), allPackets.get(i+1))) {
+                sumOfIndices += pairIndex;
+                System.out.println("true");
+            } else {
+                System.out.println("false");
+            }
+            pairIndex++;
+        }
+        System.out.println("Part 1: " + sumOfIndices);
+
         int jennifer = 9;
+    }
+
+    static boolean packetsAreInRightOrder(Packet left, Packet right) {
+        System.out.println("Comparing: " + left + " to " + right);
+        int i = 0;
+        while(true) {
+            if (i < left.subPackets.size() && i < right.subPackets.size()) {
+                Packet leftSub = left.subPackets.get(i);
+                Packet rightSub = right.subPackets.get(i);
+                //  two plain straight values
+                if (leftSub.isValuePacket() && rightSub.isValuePacket()) {
+                    if (leftSub.value < rightSub.value) {
+                        System.out.println("Two value packets: left wins (" +  left.subPackets.get(i).value + " vs. " + right.subPackets.get(i) + ")");
+                        return true;
+                    } else if (leftSub.value > rightSub.value) {
+                        System.out.println("Two value packets: right wins (" +  left.subPackets.get(i).value + " vs. " + right.subPackets.get(i) + ")");
+                        return false;
+                    } else {
+                        System.out.println("Two value packets: match (" +  left.subPackets.get(i).value + " vs. " + right.subPackets.get(i) + ")");
+
+                    }
+                } else if (!left.subPackets.get(i).isValuePacket() && !right.subPackets.get(i).isValuePacket()) {
+                    System.out.println("Both are packet lists: (" + left.subPackets.get(i) + " vs. " + right.subPackets.get(i) + ")");
+                    return packetsAreInRightOrder(left.subPackets.get(i), right.subPackets.get(i));
+//                    if (left.subPackets.get(i).subPackets.size() < right.subPackets.get(i).subPackets.size()) {
+//                        System.out.println("Left packet list shorter than right (" + left.subPackets.get(i) + " vs. " + right.subPackets.get(i) + ")");
+//                        return true;
+//                    } else if (left.subPackets.get(i).subPackets.size() > right.subPackets.get(i).subPackets.size()) {
+//                        System.out.println("Left packet list longer than right (" + left.subPackets.get(i) + " vs. " + right.subPackets.get(i) + ")");
+//                        return false;
+//                    } else if (left.subPackets.get(i).subPackets.size() == right.subPackets.get(i).subPackets.size()) {
+//                        System.out.println("Packets have same length: (" + left.subPackets.get(i) + " vs. " + right.subPackets.get(i) + ")");
+//                        return packetsAreInRightOrder(left.subPackets.get(i), right.subPackets.get(i));
+//                    }
+                } else if (left.subPackets.get(i).isValuePacket()) {
+                    System.out.println("Converting left packet");
+                    left.subPackets.set(i, getConvertedValuePacket(left.subPackets.get(i)));
+                    return packetsAreInRightOrder(left.subPackets.get(i), right.subPackets.get(i));
+                } else if (right.subPackets.get(i).isValuePacket()) {
+                    System.out.println("Converting right packet");
+                    right.subPackets.set(i, getConvertedValuePacket(right.subPackets.get(i)));
+                    return packetsAreInRightOrder(left.subPackets.get(i), right.subPackets.get(i));
+                }
+            } else {
+                if (i > left.subPackets.size() - 1) {
+                    System.out.println("Ran out on left side");
+                    return true;
+                } else if (i > right.subPackets.size() - 1) {
+                    System.out.println("Ran out on right side");
+                    return false;
+                } else {
+                    System.out.println("Something went wrong, again...");
+                    return false;
+                }
+            }
+            i++;
+        }
+    }
+
+    static Packet getConvertedValuePacket(Packet packet) {
+        if (!packet.isValuePacket()) {
+            System.out.println("Not a value packet!");
+            return packet;
+        }
+        Packet convertedPacket = new Packet();
+        convertedPacket.subPackets = new ArrayList<>();
+        Packet newSub = new Packet();
+        newSub.value = packet.value;
+        convertedPacket.subPackets.add(newSub);
+        return convertedPacket;
     }
 
     static Packet createPacketFromString(Packet parent, String input, int startIndex) {
@@ -76,46 +162,28 @@ public class Day13 {
             if (input.charAt(i) == '[') {
                 Packet newRoot = new Packet();
                 newRoot.beginningIndex = i + 1;
-
-                if (parent.subPackets == null) {
-                    parent.subPackets = new ArrayList<>();
-                }
                 Packet newPacket = createPacketFromString(newRoot, input, i + 1);
                 parent.subPackets.add(newPacket);
                 i = newPacket.endIndex + 1;
             } else if (input.charAt(i) == ',') {
-                System.out.println("comma");
                 i++;
             } else if (input.charAt(i) == ']') {
                 parent.endIndex = i;
                 return parent;
             }
             else if (Character.isDigit(input.charAt(i))) {
-                System.out.println("This is a digit " + input.charAt(i));
                 String relevantString = input.substring(i);
                 String[] digits = relevantString.split("\\,|]");
                 int commaIdx = relevantString.indexOf(',');
                 int bracketIdx = relevantString.indexOf(']');
                 int endOfNumberIdx = commaIdx == -1 || bracketIdx < commaIdx ? bracketIdx : commaIdx;
-
-
-//                Integer value = Integer.valueOf(digits[0]);
                 String digitStr = relevantString.substring(0, endOfNumberIdx);
                 Integer value = Integer.valueOf(digitStr);
-                if (parent.values == null) {
-                    parent.values = new ArrayList<>();
-                }
-                if (parent.subPackets == null) {
-                    parent.subPackets = new ArrayList<>();
-                }
                 Packet valuePacket = new Packet();
                 valuePacket.value = value;
                 parent.subPackets.add(valuePacket);
-                parent.values.add(value);
                 i += endOfNumberIdx;
-                int jennifer = 9;
             }
-
         }
         return parent;
     }
