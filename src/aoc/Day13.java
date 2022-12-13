@@ -28,7 +28,13 @@ public class Day13 {
                 }
                 string += "]";
             }
-            else string += value.toString();
+            else if (value != null) {
+                string += value.toString();
+            } else if (value == null && subPackets == null) {
+                string += "[]";
+            } else {
+                string += "SOMETHING IS WRONG; SHOULD NOT HAVE NON-NULL VALUES AND SUBPACKETS";
+            }
 //            if (values != null) {
 //                for (int i = 0; i < values.size(); i++) {
 //                    String comma = i == (values.size() - 1) ? "" : ",";
@@ -52,18 +58,17 @@ public class Day13 {
 
         int flag = 0;
         List<Packet> allPackets = new ArrayList<>();
-        Packet root = new Packet();
-        allPackets.add(createPacketFromString(root, data.get(4), 1));
-        int jennifer = 9;
-//        for (String line : data) {
-//            if (!line.isBlank()) {
-//                Packet root = new Packet();
-//                createPacketFromString(root, line, 0);
-//                allPackets.add(root);
-//            }
+//        Packet root = new Packet();
+//        allPackets.add(createPacketFromString(root, data.get(4), 1));
+        for (String line : data) {
+            if (!line.isBlank()) {
+                Packet root = new Packet();
+                allPackets.add(createPacketFromString(root, line, 1));
+            }
 //            flag++;
 //            if (flag > 1) break;
-//        }
+        }
+        int jennifer = 9;
     }
 
     static Packet createPacketFromString(Packet parent, String input, int startIndex) {
