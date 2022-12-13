@@ -1,5 +1,6 @@
 package aoc;
 
+import java.awt.image.AreaAveragingScaleFilter;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,23 +15,26 @@ public class Day13 {
         int endIndex = 0;
         List<Packet> subPackets;
         List<Integer> values;
+        Integer value;
 
         @Override
         public String toString() {
-            String string = "[";
+            String string = "";
             if (subPackets != null) {
+                string += "[";
                 for (int i = 0; i < subPackets.size(); i++) {
                     String comma = i == (subPackets.size() - 1) ? "" : ",";
                     string += subPackets.get(i).toString() + comma;
                 }
+                string += "]";
             }
-            if (values != null) {
-                for (int i = 0; i < values.size(); i++) {
-                    String comma = i == (values.size() - 1) ? "" : ",";
-                    string += values.get(i).toString() + comma;
-                }
-            }
-            string += "]";
+            else string += value.toString();
+//            if (values != null) {
+//                for (int i = 0; i < values.size(); i++) {
+//                    String comma = i == (values.size() - 1) ? "" : ",";
+//                    string += values.get(i).toString() + comma;
+//                }
+//            }
             return string;
         }
     }
@@ -49,7 +53,7 @@ public class Day13 {
         int flag = 0;
         List<Packet> allPackets = new ArrayList<>();
         Packet root = new Packet();
-        allPackets.add(createPacketFromString(root, data.get(3), 1));
+        allPackets.add(createPacketFromString(root, data.get(4), 1));
         int jennifer = 9;
 //        for (String line : data) {
 //            if (!line.isBlank()) {
@@ -96,6 +100,12 @@ public class Day13 {
                 if (parent.values == null) {
                     parent.values = new ArrayList<>();
                 }
+                if (parent.subPackets == null) {
+                    parent.subPackets = new ArrayList<>();
+                }
+                Packet valuePacket = new Packet();
+                valuePacket.value = value;
+                parent.subPackets.add(valuePacket);
                 parent.values.add(value);
                 i += endOfNumberIdx;
                 int jennifer = 9;
