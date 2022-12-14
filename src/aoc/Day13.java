@@ -56,7 +56,7 @@ public class Day13 {
 
     public static void main(String[] args) {
         List<String> data = new ArrayList<>();
-        try (final Scanner scanner = new Scanner(new File("testData/Day13.txt"))) {
+        try (final Scanner scanner = new Scanner(new File("data/Day13.txt"))) {
             while (scanner.hasNext()) {
                 data.add(scanner.nextLine());
             }
@@ -93,10 +93,21 @@ public class Day13 {
 //        System.out.println("Part 1: " + sumOfIndices);
 
         //  part 2
+
+        Packet divider1 = createPacketFromString(new Packet(), "[2]", 0);
+        Packet divider2 = createPacketFromString(new Packet(), "[6]", 0);
+        allPackets.add(divider1);
+        allPackets.add(divider2);
         Collections.sort(allPackets);
+        int sumOfIndices = 1;
         for (int i = 0; i < allPackets.size(); i++) {
             System.out.println(allPackets.get(i));
+            if (allPackets.get(i).equals(divider1) || allPackets.get(i).equals(divider2)) {
+                System.out.println("Divider!");
+                sumOfIndices *= (i + 1);
+            }
         }
+        System.out.println("Part 2: product of indices: " + sumOfIndices);
     }
 
 
