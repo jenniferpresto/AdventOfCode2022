@@ -64,7 +64,8 @@ public class Day14 {
             return;
         }
 
-        Set<Loc> cave = new HashSet<>();
+        Set<Loc> cavePt1 = new HashSet<>();
+
         //  create map
         int largestY = 0;
         //  make the cave, keep track of bottom point
@@ -92,36 +93,101 @@ public class Day14 {
                     int biggerY = Math.max(startY, endY);
                     for (int j = smallerY; j <= biggerY; j++) {
                         Loc rock = new Loc(startX, j, "#");
-                        cave.add(rock);
+                        cavePt1.add(rock);
                     }
                 } else if (startY == endY) {
                     int smallerX = Math.min(startX, endX);
                     int biggerX = Math.max(startX, endX);
                     for (int j = smallerX; j <= biggerX; j++) {
                         Loc rock = new Loc(j, startY, "#");
-                        cave.add(rock);
+                        cavePt1.add(rock);
                     }
                 }
             }
         }
-        dropSandIntoCave(cave, largestY);
-        System.out.println("Sand in cave");
-        //  sort the cave
-//            List<Loc> sortedCave = new ArrayList<>(cave);
+        Set<Loc> cavePt2 = new HashSet<>(cavePt1);
+//        int part1 = dropSandIntoCavePart1(cavePt1, largestY);
+        int part2 = dropSandIntoCavePart2(cavePt2, largestY + 2);
+//        System.out.println("Part 1: " + part1 + " grains of sand" );
+        System.out.println("Part 2: " + part2 + " grains of sand" );
 
 
     }
 
-    static void dropSandIntoCave(Set<Loc> cave, int largestY) {
-        boolean stillFalling = true;
+    static int dropSandIntoCavePart2(Set<Loc> cave, int largestY) {
+        boolean caveIsFilled = false;
+        int numSand = 0;
+        while (!caveIsFilled) {
+            boolean grainStillFalling = true;
+            Loc sand = new Loc(500, 0, "o");
+            Loc originalSand = new Loc(500, 0);
+
+
+            while(grainStillFalling) {
+                Loc down = new Loc(sand.x, sand.y + 1);
+                Loc downLeft = new Loc(sand.x - 1, sand.y + 1);
+                Loc downRight = new Loc(sand.x + 1, sand.y + 1);
+                if (cave.contains(originalSand)) {
+                     caveIsFilled = true;
+                     grainStillFalling = false;
+                    System.out.println("We've filled the cave");
+                }
+                //  build out the infinite floor
+                if (sand.y == largestY - 1) {
+                    System.out.println("Hitting the floor with grain: " + sand);
+                    Loc floorLeft = new Loc(sand.x - 1, sand.y + 1, "#");
+                    Loc floorDown = new Loc(sand.x, sand.y + 1, "#");
+                    Loc floorRight = new Loc(sand.x + 1, sand.y + 1, "#");
+
+                    if (!cave.contains(floorLeft)) {
+                        cave.add(floorLeft);
+                    }
+                    if (!cave.contains(floorDown)) {
+                        cave.add(floorDown);
+                    }
+                    if (!cave.contains(floorRight)) {
+                        cave.add(floorRight);
+                    }
+                    if (!cave.contains(sand)) {
+                        cave.add(sand);
+                        numSand++;
+                        grainStillFalling = false;
+//                        continue;
+                    } else {
+                        System.out.println("What's up with this sand");
+                    }
+                }
+                if (!cave.contains(down)) {
+                    sand.y++;
+                    continue;
+                } else if (!cave.contains(downLeft)) {
+                    sand.y++;
+                    sand.x--;
+                    continue;
+                } else if (!cave.contains(downRight)) {
+                    sand.y++;
+                    sand.x++;
+                } else if (!cave.contains(sand)) {
+                    cave.add(sand);
+                    System.out.println("Adding sand at " + sand);
+                    numSand++;
+                    grainStillFalling = false;
+                }
+            }
+        }
+        return numSand;
+    }
+
+    static int dropSandIntoCavePart1(Set<Loc> cave, int largestY) {
         boolean inTheAbyss = false;
         int numSand = 0;
         while (!inTheAbyss) {
-            stillFalling = true;
+            boolean grainStillFalling = true;
             Loc sand = new Loc(500, 0, "o");
             Loc lastSand = new Loc(495, 8);
+            Loc originalSand = new Loc(500, 0);
 
-            while(stillFalling) {
+            while(grainStillFalling) {
                 if (sand.equals(lastSand)) {
                     int jennifer = 9;
                 }
@@ -131,7 +197,7 @@ public class Day14 {
                 if (sand.y > largestY) {
                     inTheAbyss = true;
                     System.out.println("We've filled the cave");
-                    stillFalling = false;
+                    grainStillFalling = false;
                 }
 
                 if (!cave.contains(down)) {
@@ -148,10 +214,10 @@ public class Day14 {
                     cave.add(sand);
                     System.out.println("Adding sand at " + sand);
                     numSand++;
-                    stillFalling = false;
+                    grainStillFalling = false;
                 }
             }
         }
-        System.out.println("Num sand: " + numSand);
+        return numSand;
     }
 }
