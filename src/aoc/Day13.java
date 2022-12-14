@@ -39,7 +39,7 @@ public class Day13 {
                 string += "]";
             } else {
                 if (value == null) {
-                    string += "[]";
+                    string += "-";
                 } else {
                     string += value.toString();
                 }
@@ -50,7 +50,7 @@ public class Day13 {
 
     public static void main(String[] args) {
         List<String> data = new ArrayList<>();
-        try (final Scanner scanner = new Scanner(new File("data/Day13.txt"))) {
+        try (final Scanner scanner = new Scanner(new File("testData/Day13.txt"))) {
             while (scanner.hasNext()) {
                 data.add(scanner.nextLine());
             }
@@ -69,20 +69,20 @@ public class Day13 {
                 allPackets.add(createPacketFromString(root, line, 1));
             }
         }
-//        boolean rightOrder = packetsAreInRightOrder(allPackets.get(4), allPackets.get(5));
+        boolean rightOrder = packetsAreInRightOrder(allPackets.get(6), allPackets.get(7));
 
         int pairIndex = 1;
         int sumOfIndices = 0;
         for (int i = 0; i < allPackets.size(); i+=2) {
-            System.out.println("*****************************");
-            System.out.print("Pair " + pairIndex + ": Comparing " + i + " to " + (i + 1) + ": ");
-            if (packetsAreInRightOrder(allPackets.get(i), allPackets.get(i+1))) {
-                sumOfIndices += pairIndex;
-                System.out.println("true");
-            } else {
-                System.out.println("false");
-            }
-            pairIndex++;
+//            System.out.println("*****************************");
+//            System.out.println("Pair " + pairIndex + ": Comparing " + i + " to " + (i + 1) + ": ");
+//            if (packetsAreInRightOrder(allPackets.get(i), allPackets.get(i+1))) {
+//                sumOfIndices += pairIndex;
+//                System.out.println("true");
+//            } else {
+//                System.out.println("false");
+//            }
+//            pairIndex++;
         }
         System.out.println("Part 1: " + sumOfIndices);
 //
@@ -95,13 +95,13 @@ public class Day13 {
         //  both are integers
         if (left.isValuePacket() && right.isValuePacket()) {
             if (left.value < right.value) {
-                System.out.println("Two value packets: returning true (" +  left.value + " vs. " + right.value + ")");
+//                System.out.println("Two value packets: returning true (" +  left.value + " vs. " + right.value + ")");
                 return true;
             } else if (left.value > right.value) {
-                System.out.println("Two value packets: returning false (" +  left.value + " vs. " + right.value + ")");
+//                System.out.println("Two value packets: returning false (" +  left.value + " vs. " + right.value + ")");
                 return false;
             } else {
-                System.out.println("Two value packets: match (" +  left.value + " vs. " + right.value + ")");
+//                System.out.println("Two value packets: match (" +  left.value + " vs. " + right.value + ")");
                 return null;
             }
         }
@@ -109,7 +109,7 @@ public class Day13 {
         else if (!left.subPackets.isEmpty() && !right.subPackets.isEmpty()) {
             Packet newLeft = left.subPackets.pop();
             Packet newRight = right.subPackets.pop();
-            System.out.println("Both are packet lists, now comparing: (" + newLeft + " vs. " + newRight + ")");
+//            System.out.println("Both are packet lists, now comparing: (" + newLeft + " vs. " + newRight + ")");
             Boolean isOrder = packetsAreInRightOrder(newLeft, newRight);
             if (isOrder == null) {
                 return packetsAreInRightOrder(left, right);
@@ -119,26 +119,28 @@ public class Day13 {
         }
         else if (left.isValuePacket() && !right.subPackets.isEmpty()) {
             left = getConvertedValuePacket(left);
+            System.out.println("Mixed types; convert left to " + left + " and retry comparison");
             return packetsAreInRightOrder(left, right);
         } else if (!left.subPackets.isEmpty() && right.isValuePacket()) {
             right = getConvertedValuePacket(right);
+            System.out.println("Mixed types; convert right to " + right + " and retry comparison");
             return packetsAreInRightOrder(left, right);
         }
         //  still no answer
-        System.out.println("What exactly is the situation here::");
+//        System.out.println("What exactly is the situation here::");
         if (!left.subPackets.isEmpty() && !right.subPackets.isEmpty()) {
             Packet newLeft = left.subPackets.pop();
             Packet newRight = right.subPackets.pop();
             System.out.println("No answer yet, go to next one: (" + newLeft + " vs. " + newRight + ")");
             return packetsAreInRightOrder(newLeft, newRight);
         } else if (left.subPackets.isEmpty() && !right.subPackets.isEmpty()) {
-            System.out.println("Ran out on left side, returning true: ");
+            System.out.println("Left side ran out of items, returning true");
             return true;
         } else if (!left.subPackets.isEmpty() && right.subPackets.isEmpty()) {
-            System.out.println("Ran out on right side, returning false: ");
+            System.out.println("Right side ran out of items, returning false");
             return false;
         } else {
-            System.out.println("We seem to have a tie, returning null: " + left + "vs. " + right);
+//            System.out.println("We seem to have a tie, returning null: " + left + "vs. " + right);
             return null;
         }
 //        while(!left.subPackets.isEmpty() && !right.subPackets.isEmpty()) {
