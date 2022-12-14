@@ -11,13 +11,13 @@ public class Day13 {
         String definingString = "";
         int beginningIndex = 0;
         int endIndex = 0;
-//        List<Packet> subPackets = new ArrayList<>();
-        LinkedList<Packet> subPackets = new LinkedList<>();
+//        List<Packet> subPacketsArrayList = new ArrayList<>();
+        LinkedList<Packet> subPacketsList = new LinkedList<>();
 
         Integer value;
 
         public boolean isValuePacket() {
-            if (!subPackets.isEmpty() && value != null) {
+            if (!subPacketsList.isEmpty() && value != null) {
                 System.out.println("There's been a terrible mistake");
             }
             return value != null;
@@ -26,23 +26,20 @@ public class Day13 {
         @Override
         public String toString() {
             String string = "";
-            if (!subPackets.isEmpty() && value != null) {
+            if (!subPacketsList.isEmpty() && value != null) {
                 string += "SOMETHING IS WRONG HERE";
             }
-            if (!subPackets.isEmpty()) {
-                string += "[";
-                for (int i = 0; i < subPackets.size(); i++) {
-                    String comma = i == (subPackets.size() - 1) ? "" : ",";
 
-                    string += subPackets.get(i).toString() + comma;
+            if (value == null) {
+                string += "[";
+                for (int i = 0; i < subPacketsList.size(); i++) {
+                    String comma = i == (subPacketsList.size() - 1) ? "" : ",";
+
+                    string += subPacketsList.get(i).toString() + comma;
                 }
                 string += "]";
             } else {
-                if (value == null) {
-                    string += "-";
-                } else {
-                    string += value.toString();
-                }
+                string += value.toString();
             }
             return string;
         }
@@ -50,7 +47,7 @@ public class Day13 {
 
     public static void main(String[] args) {
         List<String> data = new ArrayList<>();
-        try (final Scanner scanner = new Scanner(new File("testData/Day13.txt"))) {
+        try (final Scanner scanner = new Scanner(new File("data/Day13.txt"))) {
             while (scanner.hasNext()) {
                 data.add(scanner.nextLine());
             }
@@ -62,149 +59,107 @@ public class Day13 {
         List<Packet> allPackets = new ArrayList<>();
         for (String line : data) {
             if (!line.isBlank()) {
-                if (allPackets.size() == 10) {
-                    int jennifer = 9;
-                }
                 Packet root = new Packet();
                 allPackets.add(createPacketFromString(root, line, 1));
             }
         }
-        boolean rightOrder = packetsAreInRightOrder(allPackets.get(6), allPackets.get(7));
 
         int pairIndex = 1;
         int sumOfIndices = 0;
         for (int i = 0; i < allPackets.size(); i+=2) {
-//            System.out.println("*****************************");
-//            System.out.println("Pair " + pairIndex + ": Comparing " + i + " to " + (i + 1) + ": ");
-//            if (packetsAreInRightOrder(allPackets.get(i), allPackets.get(i+1))) {
-//                sumOfIndices += pairIndex;
-//                System.out.println("true");
-//            } else {
-//                System.out.println("false");
-//            }
-//            pairIndex++;
+            System.out.println("*****************************");
+            System.out.println("Pair " + pairIndex + ": Comparing " + i + " to " + (i + 1) + ": ");
+            if (comparePackets(allPackets.get(i), allPackets.get(i+1))) {
+                sumOfIndices += pairIndex;
+                System.out.println("Pair true");
+            } else {
+                System.out.println("false");
+            }
+            pairIndex++;
         }
         System.out.println("Part 1: " + sumOfIndices);
-//
-//        int jennifer = 9;
     }
 
-    static Boolean packetsAreInRightOrder(Packet left, Packet right) {
-        System.out.println("Compare: " + left + " vs. " + right);
-//        int i = 0;
+
+    static Boolean compareLists(List<Packet> left, List<Packet> right) {
+        System.out.println("Compare " + left + " vs. " + right);
+        int limit = Math.min(left.size(), right.size());
+        for (int i = 0; i < limit; i++) {
+            Boolean isRightOrder = comparePackets(left.get(i), right.get(i));
+            if (isRightOrder != null) {
+                return isRightOrder;
+            }
+        }
+        if (left.size() < right.size()) {
+            System.out.println("Left side ran out of items, so inputs are in the right order");
+            return true;
+        } else if (left.size() > right.size()) {
+            System.out.println("Right side ran out of items, so inputs are not in the right order");
+            return false;
+        }
+
+        System.out.println("Lists are equivalent: " + left + ", " + right);
+        return null;
+    }
+
+    static Boolean compareValuePackets(Packet left, Packet right) {
+        System.out.println("Compare " + left + " vs. " + right);
+        if (!left.isValuePacket() || !right.isValuePacket()) {
+            System.out.println("There's been a mistake!");
+        }
+        if (left.value < right.value) {
+//                System.out.println("Two value packets: returning true (" +  left.value + " vs. " + right.value + ")");
+            return true;
+        } else if (left.value > right.value) {
+//                System.out.println("Two value packets: returning false (" +  left.value + " vs. " + right.value + ")");
+            return false;
+        } else {
+//                System.out.println("Two value packets: match (" +  left.value + " vs. " + right.value + ")");
+            return null;
+        }
+    }
+
+
+
+    static Boolean comparePackets(Packet left, Packet right) {
         //  both are integers
         if (left.isValuePacket() && right.isValuePacket()) {
-            if (left.value < right.value) {
-//                System.out.println("Two value packets: returning true (" +  left.value + " vs. " + right.value + ")");
-                return true;
-            } else if (left.value > right.value) {
-//                System.out.println("Two value packets: returning false (" +  left.value + " vs. " + right.value + ")");
-                return false;
+            Boolean isRightOrder = compareValuePackets(left, right);
+            if (isRightOrder == null) {
+                //  keep going
             } else {
-//                System.out.println("Two value packets: match (" +  left.value + " vs. " + right.value + ")");
-                return null;
+                return isRightOrder;
             }
         }
         //  both are lists
-        else if (!left.subPackets.isEmpty() && !right.subPackets.isEmpty()) {
-            Packet newLeft = left.subPackets.pop();
-            Packet newRight = right.subPackets.pop();
-//            System.out.println("Both are packet lists, now comparing: (" + newLeft + " vs. " + newRight + ")");
-            Boolean isOrder = packetsAreInRightOrder(newLeft, newRight);
-            if (isOrder == null) {
-                return packetsAreInRightOrder(left, right);
+        else if (!left.isValuePacket() && !right.isValuePacket()) {
+            Boolean isRightOrder = compareLists(left.subPacketsList, right.subPacketsList);
+            if (isRightOrder == null) {
+                //  keep going
             } else {
-                return isOrder;
+                return isRightOrder;
             }
         }
-        else if (left.isValuePacket() && !right.subPackets.isEmpty()) {
+        else if (left.isValuePacket() && !right.subPacketsList.isEmpty()) {
             left = getConvertedValuePacket(left);
             System.out.println("Mixed types; convert left to " + left + " and retry comparison");
-            return packetsAreInRightOrder(left, right);
-        } else if (!left.subPackets.isEmpty() && right.isValuePacket()) {
+            Boolean isRightOrder = compareLists(left.subPacketsList, right.subPacketsList);
+            if (isRightOrder == null) {
+                //  keep going
+            } else {
+                return isRightOrder;
+            }
+        } else if (!left.subPacketsList.isEmpty() && right.isValuePacket()) {
             right = getConvertedValuePacket(right);
             System.out.println("Mixed types; convert right to " + right + " and retry comparison");
-            return packetsAreInRightOrder(left, right);
+            Boolean isRightOrder = compareLists(left.subPacketsList, right.subPacketsList);
+            if (isRightOrder == null) {
+                //  keep going
+            } else {
+                return isRightOrder;
+            }
         }
-        //  still no answer
-//        System.out.println("What exactly is the situation here::");
-        if (!left.subPackets.isEmpty() && !right.subPackets.isEmpty()) {
-            Packet newLeft = left.subPackets.pop();
-            Packet newRight = right.subPackets.pop();
-            System.out.println("No answer yet, go to next one: (" + newLeft + " vs. " + newRight + ")");
-            return packetsAreInRightOrder(newLeft, newRight);
-        } else if (left.subPackets.isEmpty() && !right.subPackets.isEmpty()) {
-            System.out.println("Left side ran out of items, returning true");
-            return true;
-        } else if (!left.subPackets.isEmpty() && right.subPackets.isEmpty()) {
-            System.out.println("Right side ran out of items, returning false");
-            return false;
-        } else {
-//            System.out.println("We seem to have a tie, returning null: " + left + "vs. " + right);
-            return null;
-        }
-//        while(!left.subPackets.isEmpty() && !right.subPackets.isEmpty()) {
-//            if (i < left.subPackets.size() && i < right.subPackets.size()) {
-//                Packet leftSub = left.subPackets.get(i);
-//                Packet rightSub = right.subPackets.get(i);
-//                //  two plain straight values
-//                if (leftSub.isValuePacket() && rightSub.isValuePacket()) {
-//                    if (leftSub.value < rightSub.value) {
-//                        System.out.println("Two value packets: left wins (" +  left.subPackets.get(i).value + " vs. " + right.subPackets.get(i) + ")");
-//                        return true;
-//                    } else if (leftSub.value > rightSub.value) {
-//                        System.out.println("Two value packets: right wins (" +  left.subPackets.get(i).value + " vs. " + right.subPackets.get(i) + ")");
-//                        return false;
-//                    } else {
-//                        System.out.println("Two value packets: match (" +  left.subPackets.get(i).value + " vs. " + right.subPackets.get(i) + ")");
-//
-//                    }
-//                } else if (!left.subPackets.get(i).isValuePacket() && !right.subPackets.get(i).isValuePacket()) {
-//                    System.out.println("Both are packet lists: (" + left.subPackets.get(i) + " vs. " + right.subPackets.get(i) + ")");
-//                    return packetsAreInRightOrder(left.subPackets.get(i), right.subPackets.get(i));
-////                    if (left.subPackets.get(i).subPackets.size() < right.subPackets.get(i).subPackets.size()) {
-////                        System.out.println("Left packet list shorter than right (" + left.subPackets.get(i) + " vs. " + right.subPackets.get(i) + ")");
-////                        return true;
-////                    } else if (left.subPackets.get(i).subPackets.size() > right.subPackets.get(i).subPackets.size()) {
-////                        System.out.println("Left packet list longer than right (" + left.subPackets.get(i) + " vs. " + right.subPackets.get(i) + ")");
-////                        return false;
-////                    } else if (left.subPackets.get(i).subPackets.size() == right.subPackets.get(i).subPackets.size()) {
-////                        System.out.println("Packets have same length: (" + left.subPackets.get(i) + " vs. " + right.subPackets.get(i) + ")");
-////                        return packetsAreInRightOrder(left.subPackets.get(i), right.subPackets.get(i));
-////                    }
-//                } else if (left.subPackets.get(i).isValuePacket()) {
-//                    System.out.println("Converting left packet");
-//                    left.subPackets.set(i, getConvertedValuePacket(left.subPackets.get(i)));
-//                    return packetsAreInRightOrder(left.subPackets.get(i), right.subPackets.get(i));
-//                } else if (right.subPackets.get(i).isValuePacket()) {
-//                    System.out.println("Converting right packet");
-//                    right.subPackets.set(i, getConvertedValuePacket(right.subPackets.get(i)));
-//                    return packetsAreInRightOrder(left.subPackets.get(i), right.subPackets.get(i));
-//                }
-//            } else {
-//                if (i > left.subPackets.size() - 1) {
-//                    if (!right.subPackets.get(i).isValuePacket()) {
-//                        left = getConvertedValuePacket(left);
-//                        return packetsAreInRightOrder(left.subPackets.get(0), right.subPackets.get(i));
-//                    } else {
-//                        System.out.println("Ran out on left side");
-//                        return true;
-//                    }
-//                } else if (i > right.subPackets.size() - 1) {
-//                    if (!left.isValuePacket()) {
-//                        right = getConvertedValuePacket(right);
-//                        return packetsAreInRightOrder(left, right);
-//                    } else {
-//                        System.out.println("Ran out on right side");
-//                        return false;
-//                    }
-//                } else {
-//                    System.out.println("Something went wrong, again...");
-//                    return false;
-//                }
-//            }
-//            i++;
-//        }
+        return null;
     }
 
     static Packet getConvertedValuePacket(Packet packet) {
@@ -215,7 +170,7 @@ public class Day13 {
         Packet convertedPacket = new Packet();
         Packet newSub = new Packet();
         newSub.value = packet.value;
-        convertedPacket.subPackets.add(newSub);
+        convertedPacket.subPacketsList.add(newSub);
         return convertedPacket;
     }
 
@@ -225,7 +180,7 @@ public class Day13 {
                 Packet newRoot = new Packet();
                 newRoot.beginningIndex = i + 1;
                 Packet newPacket = createPacketFromString(newRoot, input, i + 1);
-                parent.subPackets.add(newPacket);
+                parent.subPacketsList.add(newPacket);
                 i = newPacket.endIndex + 1;
             } else if (input.charAt(i) == ',') {
                 i++;
@@ -243,7 +198,7 @@ public class Day13 {
                 Integer value = Integer.valueOf(digitStr);
                 Packet valuePacket = new Packet();
                 valuePacket.value = value;
-                parent.subPackets.add(valuePacket);
+                parent.subPacketsList.add(valuePacket);
                 i += endOfNumberIdx;
             }
         }
