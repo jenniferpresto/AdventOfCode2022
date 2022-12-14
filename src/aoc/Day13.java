@@ -8,11 +8,10 @@ import java.util.Scanner;
 
 public class Day13 {
     public static class Packet {
-        String definingString = "";
         int beginningIndex = 0;
         int endIndex = 0;
-//        List<Packet> subPacketsArrayList = new ArrayList<>();
-        LinkedList<Packet> subPacketsList = new LinkedList<>();
+        List<Packet> subPacketsList = new ArrayList<>();
+//        LinkedList<Packet> subPacketsList = new LinkedList<>();
 
         Integer value;
 
@@ -68,14 +67,18 @@ public class Day13 {
         int sumOfIndices = 0;
         for (int i = 0; i < allPackets.size(); i+=2) {
             System.out.println("*****************************");
-            System.out.println("Pair " + pairIndex + ": Comparing " + i + " to " + (i + 1) + ": ");
+            System.out.println("Pair " + pairIndex + ": Comparing " + i + " vs " + (i + 1) + ": ");
+            System.out.println("Left: " + allPackets.get(i));
+            System.out.println("Right: " + allPackets.get(i+1));
+            System.out.println("*****************************");
             if (comparePackets(allPackets.get(i), allPackets.get(i+1))) {
                 sumOfIndices += pairIndex;
-                System.out.println("Pair true");
+                System.out.println("Pair " + pairIndex + " is true!");
             } else {
                 System.out.println("false");
             }
             pairIndex++;
+//            if (pairIndex > 0) break;
         }
         System.out.println("Part 1: " + sumOfIndices);
     }
@@ -140,7 +143,7 @@ public class Day13 {
                 return isRightOrder;
             }
         }
-        else if (left.isValuePacket() && !right.subPacketsList.isEmpty()) {
+        else if (left.isValuePacket() && !right.isValuePacket()) {
             left = getConvertedValuePacket(left);
             System.out.println("Mixed types; convert left to " + left + " and retry comparison");
             Boolean isRightOrder = compareLists(left.subPacketsList, right.subPacketsList);
@@ -149,7 +152,7 @@ public class Day13 {
             } else {
                 return isRightOrder;
             }
-        } else if (!left.subPacketsList.isEmpty() && right.isValuePacket()) {
+        } else if (!left.isValuePacket() && right.isValuePacket()) {
             right = getConvertedValuePacket(right);
             System.out.println("Mixed types; convert right to " + right + " and retry comparison");
             Boolean isRightOrder = compareLists(left.subPacketsList, right.subPacketsList);
@@ -190,7 +193,6 @@ public class Day13 {
             }
             else if (Character.isDigit(input.charAt(i))) {
                 String relevantString = input.substring(i);
-                String[] digits = relevantString.split("\\,|]");
                 int commaIdx = relevantString.indexOf(',');
                 int bracketIdx = relevantString.indexOf(']');
                 int endOfNumberIdx = commaIdx == -1 || bracketIdx < commaIdx ? bracketIdx : commaIdx;
