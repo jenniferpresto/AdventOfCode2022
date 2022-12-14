@@ -2,16 +2,17 @@ package aoc;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Scanner;
 
 public class Day13 {
-    public static class Packet {
+    public static class Packet implements Comparable<Packet> {
         int beginningIndex = 0;
         int endIndex = 0;
         List<Packet> subPacketsList = new ArrayList<>();
-//        LinkedList<Packet> subPacketsList = new LinkedList<>();
 
         Integer value;
 
@@ -42,11 +43,20 @@ public class Day13 {
             }
             return string;
         }
+
+        @Override
+        public int compareTo(Packet other) {
+            Boolean inOrder = comparePackets(this, other);
+            if (inOrder != null && inOrder.equals(true)) {
+                return -1;
+            }
+            return 1;
+        }
     }
 
     public static void main(String[] args) {
         List<String> data = new ArrayList<>();
-        try (final Scanner scanner = new Scanner(new File("data/Day13.txt"))) {
+        try (final Scanner scanner = new Scanner(new File("testData/Day13.txt"))) {
             while (scanner.hasNext()) {
                 data.add(scanner.nextLine());
             }
@@ -62,25 +72,31 @@ public class Day13 {
                 allPackets.add(createPacketFromString(root, line, 1));
             }
         }
+//
+//        int pairIndex = 1;
+//        int sumOfIndices = 0;
+//        for (int i = 0; i < allPackets.size(); i+=2) {
+//            System.out.println("*****************************");
+//            System.out.println("Pair " + pairIndex + ": Comparing " + i + " vs " + (i + 1) + ": ");
+//            System.out.println("Left: " + allPackets.get(i));
+//            System.out.println("Right: " + allPackets.get(i+1));
+//            System.out.println("*****************************");
+//            if (comparePackets(allPackets.get(i), allPackets.get(i+1))) {
+//                sumOfIndices += pairIndex;
+//                System.out.println("Pair " + pairIndex + " is true!");
+//            } else {
+//                System.out.println("false");
+//            }
+//            pairIndex++;
+////            if (pairIndex > 0) break;
+//        }
+//        System.out.println("Part 1: " + sumOfIndices);
 
-        int pairIndex = 1;
-        int sumOfIndices = 0;
-        for (int i = 0; i < allPackets.size(); i+=2) {
-            System.out.println("*****************************");
-            System.out.println("Pair " + pairIndex + ": Comparing " + i + " vs " + (i + 1) + ": ");
-            System.out.println("Left: " + allPackets.get(i));
-            System.out.println("Right: " + allPackets.get(i+1));
-            System.out.println("*****************************");
-            if (comparePackets(allPackets.get(i), allPackets.get(i+1))) {
-                sumOfIndices += pairIndex;
-                System.out.println("Pair " + pairIndex + " is true!");
-            } else {
-                System.out.println("false");
-            }
-            pairIndex++;
-//            if (pairIndex > 0) break;
+        //  part 2
+        Collections.sort(allPackets);
+        for (int i = 0; i < allPackets.size(); i++) {
+            System.out.println(allPackets.get(i));
         }
-        System.out.println("Part 1: " + sumOfIndices);
     }
 
 
@@ -167,7 +183,7 @@ public class Day13 {
 
     static Packet getConvertedValuePacket(Packet packet) {
         if (!packet.isValuePacket()) {
-            System.out.println("Not a value packet!");
+            System.out.println("Error: Not a value packet!");
             return packet;
         }
         Packet convertedPacket = new Packet();
