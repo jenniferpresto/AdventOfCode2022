@@ -1,12 +1,9 @@
 package aoc;
 
-import java.awt.image.AreaAveragingScaleFilter;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class Day13 {
     public static class Packet {
@@ -130,11 +127,21 @@ public class Day13 {
                 }
             } else {
                 if (i > left.subPackets.size() - 1) {
-                    System.out.println("Ran out on left side");
-                    return true;
+                    if (!right.subPackets.get(i).isValuePacket()) {
+                        left = getConvertedValuePacket(left);
+                        return packetsAreInRightOrder(left.subPackets.get(0), right.subPackets.get(i));
+                    } else {
+                        System.out.println("Ran out on left side");
+                        return true;
+                    }
                 } else if (i > right.subPackets.size() - 1) {
-                    System.out.println("Ran out on right side");
-                    return false;
+                    if (!left.isValuePacket()) {
+                        right = getConvertedValuePacket(right);
+                        return packetsAreInRightOrder(left, right);
+                    } else {
+                        System.out.println("Ran out on right side");
+                        return false;
+                    }
                 } else {
                     System.out.println("Something went wrong, again...");
                     return false;
