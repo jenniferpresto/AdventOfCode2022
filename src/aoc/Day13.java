@@ -3,8 +3,6 @@ package aoc;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Scanner;
 
@@ -72,42 +70,38 @@ public class Day13 {
                 allPackets.add(createPacketFromString(root, line, 1));
             }
         }
-//
-//        int pairIndex = 1;
-//        int sumOfIndices = 0;
-//        for (int i = 0; i < allPackets.size(); i+=2) {
+
+        int pairIndex = 1;
+        int sumOfIndices = 0;
+        for (int i = 0; i < allPackets.size(); i+=2) {
 //            System.out.println("*****************************");
 //            System.out.println("Pair " + pairIndex + ": Comparing " + i + " vs " + (i + 1) + ": ");
 //            System.out.println("Left: " + allPackets.get(i));
 //            System.out.println("Right: " + allPackets.get(i+1));
 //            System.out.println("*****************************");
-//            if (comparePackets(allPackets.get(i), allPackets.get(i+1))) {
-//                sumOfIndices += pairIndex;
-//                System.out.println("Pair " + pairIndex + " is true!");
-//            } else {
-//                System.out.println("false");
-//            }
-//            pairIndex++;
-////            if (pairIndex > 0) break;
-//        }
-//        System.out.println("Part 1: " + sumOfIndices);
+            if (comparePackets(allPackets.get(i), allPackets.get(i+1))) {
+                sumOfIndices += pairIndex;
+                System.out.println("Pair " + pairIndex + " is true!");
+            } else {
+                System.out.println("false");
+            }
+            pairIndex++;
+        }
+        System.out.println("Part 1: " + sumOfIndices);
 
         //  part 2
-
         Packet divider1 = createPacketFromString(new Packet(), "[2]", 0);
         Packet divider2 = createPacketFromString(new Packet(), "[6]", 0);
         allPackets.add(divider1);
         allPackets.add(divider2);
         Collections.sort(allPackets);
-        int sumOfIndices = 1;
+        int productOfIndices = 1;
         for (int i = 0; i < allPackets.size(); i++) {
-            System.out.println(allPackets.get(i));
             if (allPackets.get(i).equals(divider1) || allPackets.get(i).equals(divider2)) {
-                System.out.println("Divider!");
-                sumOfIndices *= (i + 1);
+                productOfIndices *= (i + 1);
             }
         }
-        System.out.println("Part 2: product of indices: " + sumOfIndices);
+        System.out.println("Part 2: product of indices: " + productOfIndices);
     }
 
 

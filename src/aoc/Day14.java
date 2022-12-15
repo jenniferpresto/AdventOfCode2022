@@ -42,15 +42,6 @@ public class Day14 {
         public int hashCode() {
             return Objects.hash(this.x, this.y);
         }
-
-//        @Override
-//        public int compare(Loc o1, Loc o2) {
-//            if (o1.x != o2.x) {
-//                return o1.x - o2.x;
-//            } else {
-//                return o1.y - o2.y;
-//            }
-//        }
     }
 
     public static void main(String[] args) {
