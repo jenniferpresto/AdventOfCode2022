@@ -1,6 +1,8 @@
 package aoc;
 
+import java.awt.*;
 import java.io.File;
+import java.lang.annotation.Native;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -39,6 +41,25 @@ public class Day15 {
 
         public long getNumSpotsInRange() {
             return Math.abs(high - low) + 1;
+        }
+
+        @Override
+        public String toString() {
+            return low + " - " + high;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || o.getClass() != getClass()) return false;
+            CoordinateRange other = (CoordinateRange) o;
+            if (this.high == other.high && this.low == other.low) return true;
+            return false;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(this.low, this.high);
         }
     }
     private static class Loc {
@@ -107,7 +128,7 @@ public class Day15 {
 
     public static void main(String[] args) {
         List<String> data = new ArrayList<>();
-        try (final Scanner scanner = new Scanner(new File("testData/Day15.txt"))) {
+        try (final Scanner scanner = new Scanner(new File("data/Day15.txt"))) {
             while (scanner.hasNext()) {
                 data.add(scanner.nextLine());
             }
@@ -133,55 +154,31 @@ public class Day15 {
             knownLocs.put(sensorPos, "S");
             knownLocs.put(beaconPos, "B");
         }
+//        printSectionOfMap(sensors, new Loc(-2, -2), new Loc(26, 23));
 
-        long lowestKnownX = Long.MAX_VALUE;
-        long lowestKnownY = Long.MAX_VALUE;
-        long highestKnownX = Long.MIN_VALUE;
-        long highestKnownY = Long.MIN_VALUE;
-
-        Map<Long, List<CoordinateRange>> knownRows = new HashMap<>();
-
-        //  fill out known locations
+//        long testRow = 10;
+        long testRow = 2000000;
+        Set<CoordinateRange> ranges = getRangesForRow(sensors, testRow);
+        Set<CoordinateRange> consolidatedRanges = consolidateRanges(ranges);
+        long numTotalSpots = 0;
+        for (CoordinateRange range : consolidatedRanges) {
+            System.out.println("Range has this many spots: " + range.getNumSpotsInRange() + " range is " + range);
+            numTotalSpots += range.getNumSpotsInRange();
+        }
+        Set<Loc> beaconLocationsInRange = new HashSet<>();
         for (Sensor sensor : sensors) {
-//            System.out.println("Testing sensor: " + sensor);
-            Loc testLoc = new Loc(8, 7);
-            if (sensor.pos.equals(testLoc)) {
-                long manhattanDist = sensor.getManhattanDistanceToBeacon();
-                long startingX = sensor.pos.x - manhattanDist;
-                long endingX = sensor.pos.x + manhattanDist + 1;
-                long startingY = sensor.pos.y - manhattanDist;
-                long endingY = sensor.pos.y + manhattanDist + 1;
-                if (startingX < lowestKnownX) {
-                    lowestKnownX = startingX;
+            for (CoordinateRange range : consolidatedRanges) {
+                if (sensor.beaconPos.y == testRow && range.containsCoord(sensor.beaconPos.x)) {
+                    Loc beaconPos = new Loc(sensor.beaconPos.x, testRow);
+                    if (!beaconLocationsInRange.contains(beaconPos)) {
+                        beaconLocationsInRange.add(beaconPos);
+                    }
+                    break;
                 }
-                if (endingX > highestKnownX) {
-                    highestKnownX = endingX;
-                }
-                if (startingY < lowestKnownY) {
-                    lowestKnownY = startingY;
-                }
-                if (endingY > highestKnownY) {
-                    highestKnownY = endingY;
-                }
-
-                //  brute force, pos by pos
-//                for (long i = startingX; i < endingX; i++) {
-//                    for (long j = startingY; j < endingY; j++) {
-//                        Loc loc = new Loc(i, j);
-//                        long dist = sensor.pos.getManhattanDistance(loc);
-//                        if (!knownLocs.containsKey(loc)) {
-//                            if (dist < sensor.getManhattanDistanceToBeacon() + 1) {
-//                                knownLocs.put(loc, "#");
-//                            }
-//                        }
-//                    }
-//                }
             }
         }
-//        printSectionOfMap(knownLocs, new Loc(-2, -2), new Loc(26, 23));
-        printSectionOfMap(sensors, new Loc(-2, -2), new Loc(26, 23));
+        System.out.println("Part 1: Number spots without a beacon: " + (numTotalSpots - beaconLocationsInRange.size()));
 
-        long testRow = 10;
 //        long testY = 2000000;
         int jennifer = 9;
     }
@@ -195,15 +192,55 @@ public class Day15 {
         return new CoordinateRange(leftX, rightX);
     }
 
-    static void getNonBeaconSpotsInRow(Set<Sensor> sensors, long rowY) {
+    static Set<CoordinateRange> getRangesForRow(Set<Sensor> sensors, long rowY) {
+        Set<CoordinateRange> rangesForRow = new HashSet<>();
+        System.out.println("Ranges for row: " + rowY);
+        for (Sensor sensor : sensors) {
+            CoordinateRange range = getKnownRangeForRowAndSensor(rowY, sensor);
+            if (range != null) {
+                rangesForRow.add(range);
+                System.out.println(range);
+            }
+        }
+        return rangesForRow;
+    }
 
+    static Set<CoordinateRange> consolidateRanges(Set<CoordinateRange> startingSet) {
+        boolean stillConsolidating = true;
+        Set<CoordinateRange> rangeSet = new HashSet<>(startingSet);
+        //  compare all the ranges against each other until we've consolidated them all
+        while(stillConsolidating) {
+            List<CoordinateRange> rangeList = new ArrayList<>(rangeSet);
+            List<CoordinateRange> rangesToRemove = new ArrayList<>();
+            boolean didRemove = false;
+            for (int i = 0; i < rangeList.size(); i++) {
+                if (didRemove) break;
+                for (int j = i + 1; j < rangeList.size(); j++) {
+                    if (rangeList.get(i).isContiguous(rangeList.get(j))) {
+                        System.out.println("ranges are contiguous: " + rangeList.get(i) + " and " + rangeList.get(j));
+                        rangeList.get(i).addRange(rangeList.get(j));
+                        rangesToRemove.add(rangeList.get(j));
+                    }
+                }
+                if (rangesToRemove.size() > 0) {
+                    for (CoordinateRange range : rangesToRemove) {
+                        rangeSet.remove(range);
+                    }
+                    didRemove = true;
+                }
+            }
+            if (!didRemove) {
+                stillConsolidating = false;
+            }
+
+        }
+        return rangeSet;
     }
 
     static void printSectionOfMap(Set<Sensor> sensors, Loc topLeft, Loc bottomRight) {
         Sensor testSensor = new Sensor(new Loc(8, 7), new Loc(2, 10));
         for (long y = topLeft.y; y < bottomRight.y; y++) {
-            CoordinateRange sensorRange = getKnownRangeForRowAndSensor(y, testSensor);
-            int jennifer = 9;
+//            CoordinateRange sensorRange = getKnownRangeForRowAndSensor(y, testSensor);
             for (long x = topLeft.x; x < bottomRight.x; x++) {
                 Loc printLoc = new Loc(x, y);
                 String locOutput = ".";
@@ -216,26 +253,12 @@ public class Day15 {
                         locOutput = "B";
                         break;
                     }
-//                    KnownRowRange sensorRange = getKnownRangeForRowAndSensor(y, sensor);
+                    CoordinateRange sensorRange = getKnownRangeForRowAndSensor(y, sensor);
                     if (sensorRange != null && sensorRange.containsCoord(x)) {
                         locOutput = "#";
                     }
                 }
                 System.out.print(locOutput);
-            }
-            System.out.print("\n");
-        }
-    }
-
-    static void printSectionOfMap(Map<Loc, String> areaMap, Loc topLeft, Loc bottomRight) {
-        for (long y = topLeft.y; y < bottomRight.y; y++) {
-            for (long x = topLeft.x; x < bottomRight.x; x++) {
-                Loc testLoc = new Loc(x, y);
-                if (areaMap.containsKey(testLoc)) {
-                    System.out.print(areaMap.get(testLoc));
-                } else {
-                    System.out.print(".");
-                }
             }
             System.out.print("\n");
         }
