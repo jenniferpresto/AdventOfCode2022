@@ -1,22 +1,18 @@
 package aoc;
 
-import java.awt.*;
 import java.io.File;
-import java.lang.annotation.Native;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Scanner;
 import java.util.Set;
 
 public class Day15 {
-    private static class CoordinateRange {
+    private static class OneDimensionalRange {
         long low;
         long high;
-        CoordinateRange(long low, long high) {
+        OneDimensionalRange(long low, long high) {
             this.low = low;
             this.high = high;
         }
@@ -25,7 +21,7 @@ public class Day15 {
             return coord >= low && coord <= high;
         }
 
-        public boolean isContiguous(CoordinateRange other) {
+        public boolean isContiguous(OneDimensionalRange other) {
             return (this.low <= other.low &&
                         this.high >= other.low) ||
                     (this.high >= other.low &&
@@ -34,7 +30,7 @@ public class Day15 {
                     this.low == other.high + 1;
         }
 
-        public void addRange(CoordinateRange other) {
+        public void addRange(OneDimensionalRange other) {
             this.low = Math.min(this.low, other.low);
             this.high = Math.max(this.high, other.high);
         }
@@ -52,7 +48,7 @@ public class Day15 {
         public boolean equals(Object o) {
             if (this == o) return true;
             if (o == null || o.getClass() != getClass()) return false;
-            CoordinateRange other = (CoordinateRange) o;
+            OneDimensionalRange other = (OneDimensionalRange) o;
             if (this.high == other.high && this.low == other.low) return true;
             return false;
         }
@@ -62,6 +58,112 @@ public class Day15 {
             return Objects.hash(this.low, this.high);
         }
     }
+
+    private static class TwoDimensionalRange {
+        Sensor sensor;
+        Loc top;
+        Loc bottom;
+        Loc left;
+        Loc right;
+
+        TwoDimensionalRange(Loc top, Loc bottom, Loc left, Loc right) {
+            this.top = top;
+            this.bottom = bottom;
+            this.left = left;
+            this.right = right;
+        }
+
+        TwoDimensionalRange(Sensor sensor) {
+            this.sensor = sensor;
+            this.top = new Loc(sensor.pos.x, sensor.pos.y - sensor.getManhattanDistanceToBeacon());
+            this.bottom = new Loc(sensor.pos.x, sensor.pos.y + sensor.getManhattanDistanceToBeacon());
+            this.left = new Loc(sensor.pos.x - sensor.getManhattanDistanceToBeacon(), sensor.pos.y);
+            this.right = new Loc(sensor.pos.x + sensor.getManhattanDistanceToBeacon(), sensor.pos.y);
+            sensor.range = this;
+        }
+
+        public Line getTopLeft() { return new Line(top, left); }
+        public Line getTopRight() { return new Line(top, right); }
+        public Line getBottomLeft() { return new Line(bottom, left); }
+        public Line getBottomRight() { return new Line(bottom, right); }
+
+        public List<Loc> getIntersectingPoints(TwoDimensionalRange other) {
+            List<Loc> intersections = new ArrayList<>();
+            List<Loc> possibilities = new ArrayList<>();
+            //  eight possible line intersections;
+            //  each intersecting pair of ranges should have two intersecting points
+            possibilities.add(getTopLeft().intersectsAt(other.getTopRight()));
+            possibilities.add(getTopLeft().intersectsAt(other.getBottomLeft()));
+            possibilities.add(getTopRight().intersectsAt(other.getTopLeft()));
+            possibilities.add(getTopRight().intersectsAt(other.getBottomRight()));
+            possibilities.add(getBottomLeft().intersectsAt(other.getTopLeft()));
+            possibilities.add(getBottomLeft().intersectsAt(other.getBottomRight()));
+            possibilities.add(getBottomRight().intersectsAt(other.getTopRight()));
+            possibilities.add(getBottomRight().intersectsAt(other.getBottomLeft()));
+
+            for (Loc point : possibilities) {
+                if (point != null) {
+                    intersections.add(point);
+                }
+            }
+            return intersections;
+        }
+
+        public boolean fullyContains(TwoDimensionalRange other) {
+            if (!(this.top.y <= other.top.y) || !(this.bottom.y >= other.bottom.y)) {
+                return false;
+            }
+            //  get slice of two-dimensional range where sensor is
+            OneDimensionalRange row = getRangeSliceForRowAndSensor(other.sensor.pos.y, this.sensor);
+
+            return row.low <= other.left.x && row.high >= other.right.x;
+
+        }
+
+        public boolean containsLoc(Loc loc) {
+            if (!(this.top.y <= loc.y) || !(this.bottom.y >= loc.y)) {
+                return false;
+            }
+            OneDimensionalRange row = getRangeSliceForRowAndSensor(loc.y, this.sensor);
+            return row.low <= loc.x && row.high >= loc.x;
+        }
+
+//        public boolean intersects(TwoDimensionalRange other) {
+//            return ((this.top.y <= other.top.y &&
+//                    this.bottom.y >= other.bottom.y) ||
+//                    (this.top.y >= other.top.y &&
+//                    this.bottom.y <= other.bottom.y)) &&
+//                    ((this.left.x <= other.left.x &&
+//                    this.right.x >= other.right.x) ||
+//                    (this.left.x >= other.left.x &&
+//                    this.right.x <= other.right.x));
+//        }
+
+        @Override
+        public String toString() {
+            return "Sensor at " + sensor.pos + ": Top: " + top + ", bot: " + bottom + ", left: " + left + ", right: " + right;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || o.getClass() != getClass()) return false;
+            TwoDimensionalRange other = (TwoDimensionalRange) o;
+            if (this.top == other.top
+                && this.bottom == other.bottom
+                && this.left == other.left
+                && this.right == other.right) {
+                return true;
+            }
+            return false;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(this.top, this.bottom, this.left, this.right);
+        }
+    }
+
     private static class Loc {
         long x;
         long y;
@@ -78,6 +180,19 @@ public class Day15 {
         public String toString() {
             return "(" + x + "," + y + ")";
         }
+
+        public boolean equalsLocAt(long otherX, long otherY) {
+            return this.x == otherX && this.y == otherY;
+        }
+
+        public boolean isInRectangleRange(Loc topLeft, Loc bottomRight) {
+            return topLeft.x <= this.x &&
+                    topLeft.y <= this.y &&
+                    bottomRight.x >= this.x &&
+                    bottomRight.y >= this.y;
+        }
+
+
 
         @Override
         public boolean equals(Object o) {
@@ -97,10 +212,13 @@ public class Day15 {
     private static class Sensor {
         Loc pos;
         Loc beaconPos;
+        TwoDimensionalRange range;
+
         Sensor(Loc pos, Loc beaconPos) {
             this.pos = pos;
             this.beaconPos = beaconPos;
         }
+
 
         public long getManhattanDistanceToBeacon() {
             return pos.getManhattanDistance(beaconPos);
@@ -126,6 +244,53 @@ public class Day15 {
         }
     }
 
+    private static class Line {
+        Loc a;
+        Loc b;
+        Line(Loc a, Loc b) {
+            this.a = a;
+            this.b = b;
+        }
+
+        public Loc intersectsAt(Line other) {
+            //  See https://www.geeksforgeeks.org/program-for-point-of-intersection-of-two-lines/
+            //  this line equation
+            double a1 = this.b.y  - this.a.y;
+            double b1 = this.a.x - this.b.x;
+            double c1 = a1 * (this.a.x) + b1 * this.a.y;
+
+            //  other line equation
+            double a2 = other.b.y  - other.a.y;
+            double b2 = other.a.x - other.b.x;
+            double c2 = a2 * (other.a.x) + b2 * other.a.y;
+
+            double determinant = a1 * b2 - a2 * b1;
+            if (determinant == 0) {
+//                System.out.println("Lines are parallel!");
+                return null;
+            }
+            double x = (b2 * c1 - b1 * c2) / determinant;
+            double y = (a1 * c2 - a2 * c1) / determinant;
+//            System.out.println("Intersection at (" + x + "," + y + ")");
+            //  since all slopes are 1 or -1, all of our lines should intersect at integer points
+            Loc intersection = new Loc((long)x, (long)y);
+            //  see if intersection is on the line segment
+            if ((Math.min(a.x, b.x) <= intersection.x && Math.max(a.x, b.x) >= intersection.x) &&
+                    (Math.min(a.y, b.y) <= intersection.y && Math.max(a.y, b.y) >= intersection.y) &&
+                    (Math.min(other.a.x, other.b.x) <= intersection.x && Math.max(other.a.x, other.b.x) >= intersection.x) &&
+                    (Math.min(other.a.y, other.b.y) <= intersection.y && Math.max(other.a.y, other.b.y) >= intersection.y)) {
+                return intersection;
+            }
+//            System.out.println("They don't intersect each other on these segments");
+            return null;
+        }
+
+        @Override
+        public String toString() {
+            return a + " - " + b;
+        }
+    }
+
     public static void main(String[] args) {
         List<String> data = new ArrayList<>();
         try (final Scanner scanner = new Scanner(new File("data/Day15.txt"))) {
@@ -137,66 +302,153 @@ public class Day15 {
             return;
         }
 
-        Set<Sensor> sensors = new HashSet<>();
-        Map<Loc, String> knownLocs = new HashMap<>();
+        Set<Sensor> sensors = createSensors(data);
+//        printSectionOfMap(sensors, new Loc(0, 0), new Loc(21, 21));
 
-        //  parse data, save beacons and sensors
-        for (String line : data) {
-            String[] instructions = line.split(" ");
-            long posX = Long.valueOf(instructions[2].substring(2, instructions[2].length() - 1));
-            long posY = Long.valueOf(instructions[3].substring(2, instructions[3].length() - 1));
-            long beaX = Long.valueOf(instructions[8].substring(2, instructions[8].length() - 1));
-            long beaY = Long.valueOf(instructions[9].substring(2));
-            Loc sensorPos = new Loc(posX, posY);
-            Loc beaconPos = new Loc(beaX, beaY);
-            Sensor sensor = new Sensor(sensorPos, beaconPos);
-            sensors.add(sensor);
-            knownLocs.put(sensorPos, "S");
-            knownLocs.put(beaconPos, "B");
-        }
-//        printSectionOfMap(sensors, new Loc(-2, -2), new Loc(26, 23));
+        //  Part 1
+//        long testRow = 10; // change to 10 for test data; 2000000 for real data
+//        Set<OneDimensionalRange> ranges = getRangesForRow(sensors, testRow);
+//        Set<OneDimensionalRange> consolidatedRanges = consolidateOneDimensionalRanges(ranges);
+//        long numTotalSpots = 0;
+//        for (OneDimensionalRange range : consolidatedRanges) {
+//            System.out.println("Range has this many spots: " + range.getNumSpotsInRange() + " range is " + range);
+//            numTotalSpots += range.getNumSpotsInRange();
+//        }
+//        Set<Loc> beaconLocationsInRange = new HashSet<>();
+//        for (Sensor sensor : sensors) {
+//            for (OneDimensionalRange range : consolidatedRanges) {
+//                if (sensor.beaconPos.y == testRow && range.containsCoord(sensor.beaconPos.x)) {
+//                    Loc beaconPos = new Loc(sensor.beaconPos.x, testRow);
+//                    if (!beaconLocationsInRange.contains(beaconPos)) {
+//                        beaconLocationsInRange.add(beaconPos);
+//                    }
+//                    break;
+//                }
+//            }
+//        }
+//        System.out.println("Part 1: Number spots without a beacon: " + (numTotalSpots - beaconLocationsInRange.size()));
 
-//        long testRow = 10;
-        long testRow = 2000000;
-        Set<CoordinateRange> ranges = getRangesForRow(sensors, testRow);
-        Set<CoordinateRange> consolidatedRanges = consolidateRanges(ranges);
-        long numTotalSpots = 0;
-        for (CoordinateRange range : consolidatedRanges) {
-            System.out.println("Range has this many spots: " + range.getNumSpotsInRange() + " range is " + range);
-            numTotalSpots += range.getNumSpotsInRange();
-        }
-        Set<Loc> beaconLocationsInRange = new HashSet<>();
+        //  Part 2
+//        Set<TwoDimensionalRange> twoDimensionalRanges = new HashSet<>();
         for (Sensor sensor : sensors) {
-            for (CoordinateRange range : consolidatedRanges) {
-                if (sensor.beaconPos.y == testRow && range.containsCoord(sensor.beaconPos.x)) {
-                    Loc beaconPos = new Loc(sensor.beaconPos.x, testRow);
-                    if (!beaconLocationsInRange.contains(beaconPos)) {
-                        beaconLocationsInRange.add(beaconPos);
+            TwoDimensionalRange range = new TwoDimensionalRange(sensor);
+//            twoDimensionalRanges.add(range);
+        }
+//        List<TwoDimensionalRange> rangeList = new ArrayList<>(twoDimensionalRanges);
+        List<Sensor> sensorList = new ArrayList<>(sensors);
+        Loc testSensorPos1 = new Loc(12, 14);
+        Loc testSensorPos2 = new Loc(20, 14);
+        Loc testSensorPos3 = new Loc(8, 7);
+        Set<Loc> intersectingPoints = new HashSet<>();
+        for (int i = 0; i < sensorList.size(); i++) {
+            for (int j = i + 1; j < sensorList.size(); j++) {
+                Sensor sensor1 = sensorList.get(i);
+                Sensor sensor2 = sensorList.get(j);
+                if ((sensor1.pos.equals(testSensorPos1) || sensor1.pos.equals(testSensorPos2)) &&
+                        (sensor2.pos.equals(testSensorPos1) || sensor2.pos.equals(testSensorPos2))) {
+                    System.out.println("Testing test sensors");
+                    int jennifer= 9;
+                }
+                TwoDimensionalRange range1 = sensor1.range;
+                TwoDimensionalRange range2 = sensor2.range;
+                if (range1.fullyContains(range2) || range2.fullyContains(range1)) {
+                    System.out.println("One of these sensors contains the other: " + sensorList.get(i).pos + " & " + sensorList.get(j).pos);
+                } else {
+                    System.out.println("Intersecting ranges around sensors at: " + sensorList.get(i).pos + " & " + sensorList.get(j).pos);
+                    for(Loc point : range1.getIntersectingPoints(range2)) {
+                        System.out.println("\tIntersecting points: " + point);
+                        if (!intersectingPoints.contains(point)) {
+                            intersectingPoints.add(point);
+                        }
                     }
+                }
+
+            }
+        }
+
+        //  get all points immediately around the intersections
+        List<Loc> possiblePoints = new ArrayList<>();
+        for (Loc point : intersectingPoints) {
+            possiblePoints.add(new Loc(point.x - 1, point.y));
+            possiblePoints.add(new Loc(point.x + 1, point.y));
+            possiblePoints.add(new Loc(point.x, point.y - 1));
+            possiblePoints.add(new Loc(point.x, point.y + 1));
+        }
+
+        Set<Loc> orphanPoints = new HashSet<>();
+        for (Loc point : possiblePoints) {
+            Loc testLoc = new Loc(14, 11);
+            if (point.equals(testLoc)) {
+                int jennifer = 9;
+            }
+            boolean pointIsContainedSomewhere = false;
+            for (Sensor sensor : sensors) {
+                if (sensor.pos.equalsLocAt(12, 14)) {
+                    int grace = 10;
+                }
+                if (sensor.range.containsLoc(point)) {
+                    pointIsContainedSomewhere = true;
                     break;
                 }
             }
+            if (!pointIsContainedSomewhere) {
+                if (point.isInRectangleRange(new Loc(0, 0), new Loc(4000000, 4000000))) {
+                    orphanPoints.add(point);
+                    System.out.println("This is an orphan point in the rectangle: " + point);
+                }
+            }
         }
-        System.out.println("Part 1: Number spots without a beacon: " + (numTotalSpots - beaconLocationsInRange.size()));
-
-//        long testY = 2000000;
+        if (orphanPoints.size() > 1) {
+            System.out.println("We have too many possibilities");
+        }
+        Loc winner = orphanPoints.iterator().next();
+        long frequency = winner.x * 4000000 + winner.y;
+        System.out.println("Part 2: " + frequency);
         int jennifer = 9;
+
+
+//        Line lineA = new Line(new Loc(1, 1), new Loc(1, 8));
+//        Line lineB = new Line(new Loc(4, 2), new Loc(4, 4));
+//        Loc intersection = lineA.intersectsAt(lineB);
+
+//        Set<Sensor> testSensors = new HashSet<>();
+//
+//        for (Sensor sensor : sensors) {
+////            if (sensor.pos.equals(testSensorPos1) || sensor.pos.equals(testSensorPos2) || sensor.pos.equals(testSensorPos3)) {
+//            if (sensor.pos.equals(testSensorPos1) || sensor.pos.equals(testSensorPos2)) {
+//                testSensors.add(sensor);
+//            }
+//        }
+//
+//        List<Sensor> testSensorList = new ArrayList<>(testSensors);
+//        Sensor testSensor1 = testSensorList.get(0);
+//        Sensor testSensor2 = testSensorList.get(1);
+//        System.out.println("Sensor at " + testSensor1.pos + " contains " + testSensor2.pos + "? " + testSensor1.range.fullyContains(testSensor2.range));
+//        System.out.println("Sensor at " + testSensor2.pos + " contains " + testSensor1.pos + "? " + testSensor2.range.fullyContains(testSensor1.range));
+//
+//        System.out.println("Intersecting points");
+//        for (Loc point : testSensor1.range.getIntersectingPoints(testSensor2.range)) {
+//            System.out.println(point);
+//        }
+////        printSectionOfMap(testSensors, new Loc(0, 0), new Loc(23, 23));
+////        System.out.println("Whole thing");
+////        printSectionOfMap(sensors, new Loc(0, 0), new Loc(20, 20));
     }
 
-    static CoordinateRange getKnownRangeForRowAndSensor(long row, Sensor sensor) {
+    static OneDimensionalRange getRangeSliceForRowAndSensor(long row, Sensor sensor) {
         long manDist = sensor.getManhattanDistanceToBeacon();
         long rowDistFromSensor = Math.abs(row - sensor.pos.y);
         if (rowDistFromSensor > manDist) { return null; }
         long leftX = sensor.pos.x - (manDist - rowDistFromSensor);
         long rightX = sensor.pos.x + (manDist - rowDistFromSensor);
-        return new CoordinateRange(leftX, rightX);
+        return new OneDimensionalRange(leftX, rightX);
     }
 
-    static Set<CoordinateRange> getRangesForRow(Set<Sensor> sensors, long rowY) {
-        Set<CoordinateRange> rangesForRow = new HashSet<>();
+    static Set<OneDimensionalRange> getRangesForRow(Set<Sensor> sensors, long rowY) {
+        Set<OneDimensionalRange> rangesForRow = new HashSet<>();
         System.out.println("Ranges for row: " + rowY);
         for (Sensor sensor : sensors) {
-            CoordinateRange range = getKnownRangeForRowAndSensor(rowY, sensor);
+            OneDimensionalRange range = getRangeSliceForRowAndSensor(rowY, sensor);
             if (range != null) {
                 rangesForRow.add(range);
                 System.out.println(range);
@@ -205,13 +457,13 @@ public class Day15 {
         return rangesForRow;
     }
 
-    static Set<CoordinateRange> consolidateRanges(Set<CoordinateRange> startingSet) {
+    static Set<OneDimensionalRange> consolidateOneDimensionalRanges(Set<OneDimensionalRange> startingSet) {
         boolean stillConsolidating = true;
-        Set<CoordinateRange> rangeSet = new HashSet<>(startingSet);
+        Set<OneDimensionalRange> rangeSet = new HashSet<>(startingSet);
         //  compare all the ranges against each other until we've consolidated them all
         while(stillConsolidating) {
-            List<CoordinateRange> rangeList = new ArrayList<>(rangeSet);
-            List<CoordinateRange> rangesToRemove = new ArrayList<>();
+            List<OneDimensionalRange> rangeList = new ArrayList<>(rangeSet);
+            List<OneDimensionalRange> rangesToRemove = new ArrayList<>();
             boolean didRemove = false;
             for (int i = 0; i < rangeList.size(); i++) {
                 if (didRemove) break;
@@ -223,7 +475,7 @@ public class Day15 {
                     }
                 }
                 if (rangesToRemove.size() > 0) {
-                    for (CoordinateRange range : rangesToRemove) {
+                    for (OneDimensionalRange range : rangesToRemove) {
                         rangeSet.remove(range);
                     }
                     didRemove = true;
@@ -237,6 +489,21 @@ public class Day15 {
         return rangeSet;
     }
 
+    static Set<Sensor> createSensors(List<String> data) {
+        Set<Sensor> sensors = new HashSet<>();
+
+        //  parse data, save beacons and sensors
+        for (String line : data) {
+            String[] instructions = line.split(" ");
+            long posX = Long.valueOf(instructions[2].substring(2, instructions[2].length() - 1));
+            long posY = Long.valueOf(instructions[3].substring(2, instructions[3].length() - 1));
+            long beaX = Long.valueOf(instructions[8].substring(2, instructions[8].length() - 1));
+            long beaY = Long.valueOf(instructions[9].substring(2));
+            Sensor sensor = new Sensor(new Loc(posX, posY), new Loc(beaX, beaY));
+            sensors.add(sensor);
+        }
+        return sensors;
+    }
     static void printSectionOfMap(Set<Sensor> sensors, Loc topLeft, Loc bottomRight) {
         Sensor testSensor = new Sensor(new Loc(8, 7), new Loc(2, 10));
         for (long y = topLeft.y; y < bottomRight.y; y++) {
@@ -253,8 +520,11 @@ public class Day15 {
                         locOutput = "B";
                         break;
                     }
-                    CoordinateRange sensorRange = getKnownRangeForRowAndSensor(y, sensor);
-                    if (sensorRange != null && sensorRange.containsCoord(x)) {
+                    if(sensor.pos.equals(new Loc(14, 11))) {
+                        locOutput = "O";
+                    }
+                    OneDimensionalRange rangeSlice = getRangeSliceForRowAndSensor(y, sensor);
+                    if (rangeSlice != null && rangeSlice.containsCoord(x)) {
                         locOutput = "#";
                     }
                 }
