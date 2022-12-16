@@ -9,10 +9,10 @@ import java.util.Scanner;
 import java.util.Set;
 
 public class Day15 {
-    private static class OneDimensionalRange {
+    private static class RangeSlice {
         long low;
         long high;
-        OneDimensionalRange(long low, long high) {
+        RangeSlice(long low, long high) {
             this.low = low;
             this.high = high;
         }
@@ -21,7 +21,7 @@ public class Day15 {
             return coord >= low && coord <= high;
         }
 
-        public boolean isContiguous(OneDimensionalRange other) {
+        public boolean isContiguous(RangeSlice other) {
             return (this.low <= other.low &&
                         this.high >= other.low) ||
                     (this.high >= other.low &&
@@ -30,7 +30,7 @@ public class Day15 {
                     this.low == other.high + 1;
         }
 
-        public void addRange(OneDimensionalRange other) {
+        public void addRange(RangeSlice other) {
             this.low = Math.min(this.low, other.low);
             this.high = Math.max(this.high, other.high);
         }
@@ -48,7 +48,7 @@ public class Day15 {
         public boolean equals(Object o) {
             if (this == o) return true;
             if (o == null || o.getClass() != getClass()) return false;
-            OneDimensionalRange other = (OneDimensionalRange) o;
+            RangeSlice other = (RangeSlice) o;
             if (this.high == other.high && this.low == other.low) return true;
             return false;
         }
@@ -66,20 +66,12 @@ public class Day15 {
         Loc left;
         Loc right;
 
-        TwoDimensionalRange(Loc top, Loc bottom, Loc left, Loc right) {
-            this.top = top;
-            this.bottom = bottom;
-            this.left = left;
-            this.right = right;
-        }
-
         TwoDimensionalRange(Sensor sensor) {
             this.sensor = sensor;
             this.top = new Loc(sensor.pos.x, sensor.pos.y - sensor.getManhattanDistanceToBeacon());
             this.bottom = new Loc(sensor.pos.x, sensor.pos.y + sensor.getManhattanDistanceToBeacon());
             this.left = new Loc(sensor.pos.x - sensor.getManhattanDistanceToBeacon(), sensor.pos.y);
             this.right = new Loc(sensor.pos.x + sensor.getManhattanDistanceToBeacon(), sensor.pos.y);
-            sensor.range = this;
         }
 
         public Line getTopLeft() { return new Line(top, left); }
@@ -114,7 +106,7 @@ public class Day15 {
                 return false;
             }
             //  get slice of two-dimensional range where sensor is
-            OneDimensionalRange row = getRangeSliceForRowAndSensor(other.sensor.pos.y, this.sensor);
+            RangeSlice row = getRangeSliceForRowAndSensor(other.sensor.pos.y, this.sensor);
 
             return row.low <= other.left.x && row.high >= other.right.x;
         }
@@ -123,13 +115,13 @@ public class Day15 {
             if (!(this.top.y <= loc.y) || !(this.bottom.y >= loc.y)) {
                 return false;
             }
-            OneDimensionalRange row = getRangeSliceForRowAndSensor(loc.y, this.sensor);
+            RangeSlice row = getRangeSliceForRowAndSensor(loc.y, this.sensor);
             return row.low <= loc.x && row.high >= loc.x;
         }
 
         @Override
         public String toString() {
-            return "Sensor at " + sensor.pos + ": Top: " + top + ", bot: " + bottom + ", left: " + left + ", right: " + right;
+            return "Sensor: " + sensor.pos + ": Top: " + top + ", bot: " + bottom + ", left: " + left + ", right: " + right;
         }
 
         @Override
@@ -137,10 +129,11 @@ public class Day15 {
             if (this == o) return true;
             if (o == null || o.getClass() != getClass()) return false;
             TwoDimensionalRange other = (TwoDimensionalRange) o;
-            if (this.top == other.top
-                && this.bottom == other.bottom
-                && this.left == other.left
-                && this.right == other.right) {
+            if (this.top.equals(other.top)
+                && this.bottom.equals(other.bottom)
+                && this.left.equals(other.left)
+                && this.right.equals(other.right)
+                && this.sensor.equals(other.sensor)) {
                 return true;
             }
             return false;
@@ -220,8 +213,9 @@ public class Day15 {
             if (this == o) return true;
             if (o == null || o.getClass() != getClass()) return false;
             Sensor other = (Sensor)o;
-            if (this.pos.equals(other.pos) && this.beaconPos.equals(other.beaconPos)) return true;
-            return false;
+            return this.pos.equals(other.pos) &&
+                    this.beaconPos.equals(other.beaconPos) &&
+                    this.range.equals(other.range);
         }
 
         @Override
@@ -290,15 +284,15 @@ public class Day15 {
 
         //  Part 1
         long testRow = 2000000; // change to 10 for test data; 2000000 for real data
-        Set<OneDimensionalRange> ranges = getRangesForRow(sensors, testRow);
-        Set<OneDimensionalRange> consolidatedRanges = consolidateOneDimensionalRanges(ranges);
+        Set<RangeSlice> ranges = getRangesForRow(sensors, testRow);
+        Set<RangeSlice> consolidatedRanges = consolidateOneDimensionalRanges(ranges);
         long numTotalSpots = 0;
-        for (OneDimensionalRange range : consolidatedRanges) {
+        for (RangeSlice range : consolidatedRanges) {
             numTotalSpots += range.getNumSpotsInRange();
         }
         Set<Loc> beaconLocationsInRange = new HashSet<>();
         for (Sensor sensor : sensors) {
-            for (OneDimensionalRange range : consolidatedRanges) {
+            for (RangeSlice range : consolidatedRanges) {
                 if (sensor.beaconPos.y == testRow && range.containsCoord(sensor.beaconPos.x)) {
                     Loc beaconPos = new Loc(sensor.beaconPos.x, testRow);
                     if (!beaconLocationsInRange.contains(beaconPos)) {
@@ -312,6 +306,9 @@ public class Day15 {
 
         //  Part 2
         List<Sensor> sensorList = new ArrayList<>(sensors);
+        //  Since there's only one possible location,
+        //  we know it has to be adjacent to an intersection between sensor ranges.
+        //  Get all the intersecting points
         Set<Loc> intersectingPoints = new HashSet<>();
         for (int i = 0; i < sensorList.size(); i++) {
             for (int j = i + 1; j < sensorList.size(); j++) {
@@ -319,14 +316,14 @@ public class Day15 {
                 Sensor sensor2 = sensorList.get(j);
                 TwoDimensionalRange range1 = sensor1.range;
                 TwoDimensionalRange range2 = sensor2.range;
-                if (!range1.fullyContains(range2) & !range2.fullyContains(range1)) {
+                if (!range1.fullyContains(range2) && !range2.fullyContains(range1)) {
                     intersectingPoints.addAll(range1.getIntersectingPoints(range2));
                 }
             }
         }
 
         //  get all points immediately around the intersections
-        List<Loc> possiblePoints = new ArrayList<>();
+        Set<Loc> possiblePoints = new HashSet<>();
         for (Loc point : intersectingPoints) {
             possiblePoints.add(new Loc(point.x - 1, point.y));
             possiblePoints.add(new Loc(point.x + 1, point.y));
@@ -334,12 +331,9 @@ public class Day15 {
             possiblePoints.add(new Loc(point.x, point.y + 1));
         }
 
+        //  the point will not be located within any of the sensors' ranges
         Set<Loc> orphanPoints = new HashSet<>();
         for (Loc point : possiblePoints) {
-            Loc testLoc = new Loc(14, 11);
-            if (point.equals(testLoc)) {
-                int jennifer = 9;
-            }
             boolean pointIsContainedSomewhere = false;
             for (Sensor sensor : sensors) {
                 if (sensor.range.containsLoc(point)) {
@@ -383,34 +377,33 @@ public class Day15 {
 ////        printSectionOfMap(sensors, new Loc(0, 0), new Loc(20, 20));
     }
 
-    static OneDimensionalRange getRangeSliceForRowAndSensor(long row, Sensor sensor) {
+    static RangeSlice getRangeSliceForRowAndSensor(long row, Sensor sensor) {
         long manDist = sensor.getManhattanDistanceToBeacon();
         long rowDistFromSensor = Math.abs(row - sensor.pos.y);
         if (rowDistFromSensor > manDist) { return null; }
         long leftX = sensor.pos.x - (manDist - rowDistFromSensor);
         long rightX = sensor.pos.x + (manDist - rowDistFromSensor);
-        return new OneDimensionalRange(leftX, rightX);
+        return new RangeSlice(leftX, rightX);
     }
 
-    static Set<OneDimensionalRange> getRangesForRow(Set<Sensor> sensors, long rowY) {
-        Set<OneDimensionalRange> rangesForRow = new HashSet<>();
+    static Set<RangeSlice> getRangesForRow(Set<Sensor> sensors, long rowY) {
+        Set<RangeSlice> rangesForRow = new HashSet<>();
         for (Sensor sensor : sensors) {
-            OneDimensionalRange range = getRangeSliceForRowAndSensor(rowY, sensor);
+            RangeSlice range = getRangeSliceForRowAndSensor(rowY, sensor);
             if (range != null) {
                 rangesForRow.add(range);
-                System.out.println(range);
             }
         }
         return rangesForRow;
     }
 
-    static Set<OneDimensionalRange> consolidateOneDimensionalRanges(Set<OneDimensionalRange> startingSet) {
+    static Set<RangeSlice> consolidateOneDimensionalRanges(Set<RangeSlice> startingSet) {
         boolean stillConsolidating = true;
-        Set<OneDimensionalRange> rangeSet = new HashSet<>(startingSet);
+        Set<RangeSlice> rangeSet = new HashSet<>(startingSet);
         //  compare all the ranges against each other until we've consolidated them all
         while(stillConsolidating) {
-            List<OneDimensionalRange> rangeList = new ArrayList<>(rangeSet);
-            List<OneDimensionalRange> rangesToRemove = new ArrayList<>();
+            List<RangeSlice> rangeList = new ArrayList<>(rangeSet);
+            List<RangeSlice> rangesToRemove = new ArrayList<>();
             boolean didRemove = false;
             for (int i = 0; i < rangeList.size(); i++) {
                 if (didRemove) break;
@@ -421,7 +414,7 @@ public class Day15 {
                     }
                 }
                 if (rangesToRemove.size() > 0) {
-                    for (OneDimensionalRange range : rangesToRemove) {
+                    for (RangeSlice range : rangesToRemove) {
                         rangeSet.remove(range);
                     }
                     didRemove = true;
@@ -451,9 +444,7 @@ public class Day15 {
         return sensors;
     }
     static void printSectionOfMap(Set<Sensor> sensors, Loc topLeft, Loc bottomRight) {
-        Sensor testSensor = new Sensor(new Loc(8, 7), new Loc(2, 10));
         for (long y = topLeft.y; y < bottomRight.y; y++) {
-//            CoordinateRange sensorRange = getKnownRangeForRowAndSensor(y, testSensor);
             for (long x = topLeft.x; x < bottomRight.x; x++) {
                 Loc printLoc = new Loc(x, y);
                 String locOutput = ".";
@@ -466,10 +457,7 @@ public class Day15 {
                         locOutput = "B";
                         break;
                     }
-                    if(sensor.pos.equals(new Loc(14, 11))) {
-                        locOutput = "O";
-                    }
-                    OneDimensionalRange rangeSlice = getRangeSliceForRowAndSensor(y, sensor);
+                    RangeSlice rangeSlice = getRangeSliceForRowAndSensor(y, sensor);
                     if (rangeSlice != null && rangeSlice.containsCoord(x)) {
                         locOutput = "#";
                     }
