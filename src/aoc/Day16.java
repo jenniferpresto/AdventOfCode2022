@@ -10,8 +10,29 @@ import java.util.Scanner;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class Day16 {
-    static final int NUM_MINUTES = 8;
+    static final int NUM_MINUTES = 30;
     static AtomicInteger HIGHEST_FLOW = new AtomicInteger();
+
+    private static class RoomPair {
+        final String room1;
+        final String room2;
+        RoomPair(String room1, String room2) {
+            this.room1 = room1;
+            this.room2 = room2;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || o.getClass() != getClass()) return false;
+            RoomPair other = (RoomPair) o;
+            return this.room1.equals(other.room1) && this.room2.equals(other.room2);
+        }
+        boolean isEquivalent(RoomPair other) {
+            return (this.room1.equals(other.room1) && this.room2.equals(other.room2)) ||
+                    (this.room1.equals(other.room2) && this.room2.equals(other.room1));
+        }
+    }
     private static class CaveRoom {
         final String valveName;
         final int flow;
@@ -107,14 +128,33 @@ public class Day16 {
 
     static void traverseRooms(CaveRoom currentRoom, String[] path, int idx, int totalFlow, List<CaveRoom> caveRooms) {
         //  when we start over, shut all the valves
-        if (path[0] != null && path[0].equals("-> DD")
+        if (path[0] != null && path[0].equals("->DD")
             && path[1] != null && path[1].equals("open DD")
-            && path[2] != null &&  path[2].equals("-> CC")
-            && path[3] != null && path[3].equals("-> BB")
+            && path[2] != null &&  path[2].equals("->CC")
+            && path[3] != null && path[3].equals("->BB")
             && path[4] != null && path[4].equals("open BB")
         ){
+//            System.out.println(getPathString(path, idx));
             int grace = 0;
         }
+        //  check the path
+//        if (doesBacktrack(path, idx)) {
+//            System.out.println("Abandoning at " + idx + ": " + getPathString(path, idx));
+//            return;
+//        }
+        if (isInefficient(path, idx)) {
+//            System.out.println("Abandoning at " + idx + ": " + getPathString(path, idx));
+            return;
+        }
+
+        //  see if all valves are already open; if so, can stop traversing rooms
+        boolean allOpen = true;
+        for (CaveRoom room : caveRooms) {
+            if(room.flow > 0 && !room.valveOpen) {
+                allOpen = false;
+            }
+        }
+
         if (idx + 1 > NUM_MINUTES) {
             if (totalFlow > HIGHEST_FLOW.get()) {
                 HIGHEST_FLOW.set(totalFlow);
@@ -132,12 +172,21 @@ public class Day16 {
                 }
             }
         }
-
         //  add up flow for open caves
+        int flowPerMinute = 0;
         for (CaveRoom caveRoom : caveRooms) {
             if (caveRoom.valveOpen) {
-                totalFlow += caveRoom.flow;
+                flowPerMinute += caveRoom.flow;
             }
+        }
+
+        totalFlow += flowPerMinute;
+
+        if (allOpen) {
+            //  add the remaining flow and call it a day
+            System.out.println("ALL OPEN!!!!");
+            totalFlow += (NUM_MINUTES - idx) * flowPerMinute;
+            return;
         }
 
         //  continue traversing rooms
@@ -148,7 +197,7 @@ public class Day16 {
         }
 
         for (CaveRoom child : currentRoom.children) {
-            path[idx] = "-> " + child.valveName;
+            path[idx] = "->" + child.valveName;
             traverseRooms(child, path, idx + 1, totalFlow, caveRooms);
         }
     }
@@ -161,5 +210,78 @@ public class Day16 {
         }
         System.out.println("This shouldn't happen");
         return null;
+    }
+
+    static boolean doesBacktrack(String[] path, int idx) {
+        if (idx < 4) {
+            return false;
+        }
+        if (path[idx-1].startsWith("->")
+                && path[idx-2].startsWith("->")
+                && path[idx-3].startsWith("->")
+                && path[idx-1].equals(path[idx-3])
+        ) {
+//            System.out.println("We backtrack: " + getPathString(path, idx));
+            return true;
+        }
+        return false;
+    }
+
+    //  if we walk between the same two rooms without opening any valves,
+    //  we're being inefficient -- no time for that!
+    static boolean isInefficient(String[] path, int idx) {
+        int end = idx - 1;
+        int start = idx - 1;
+        List<String> roomsSinceLastOpenedValve = new ArrayList<>();
+        List<RoomPair> pairs  = new ArrayList<>();
+        //  go backwards down the path until we last opened a valve
+        for (int i = end; i > -1; i--) {
+            if(path[i].startsWith("open")) {
+                start = i + 1;
+                String roomName = path[i].split(" ")[1];
+                if (roomsSinceLastOpenedValve.contains(roomName)) {
+                    return true;
+                }
+                roomsSinceLastOpenedValve.add(roomName);
+                break;
+            } else {
+                String roomName = path[i].substring(2);
+                if (roomsSinceLastOpenedValve.contains(roomName)) {
+                    return true;
+                }
+                roomsSinceLastOpenedValve.add(path[i].substring(2));
+            }
+            if (i == 0) {
+                start = i;
+            }
+        }
+
+        if (end - start < 2) {
+            return false;
+        }
+        for (int i  = start; i < end; i++) {
+            pairs.add(new RoomPair(path[i], path[i+1]));
+        }
+        //  test all pairs for inefficiency
+        for (int i = 0; i < pairs.size(); i++) {
+            for (int j = i+1; j < pairs.size(); j++) {
+                if (pairs.get(i).isEquivalent(pairs.get(j))) {
+                    System.out.println("Inefficient! " + getPathString(path, idx));
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    static String getPathString(String[] path, int idx) {
+        String pathStr = "";
+        for (int i = 0; i < idx; i++) {
+            pathStr += path[i];
+            if (i < idx - 1) {
+                pathStr +=", ";
+            }
+        }
+        return pathStr;
     }
 }
