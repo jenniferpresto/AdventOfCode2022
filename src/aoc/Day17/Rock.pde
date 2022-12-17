@@ -1,55 +1,60 @@
 class Rock {
-  PVector position;
+  PVector pos;
   color col;
-  Block[] blocks = new Block[4];
+  ArrayList<Block> blockList = new ArrayList<>(); 
   int blockWidth = 10;
   
   
   Rock(float x, float y) {
-    position = new PVector(x, y);
-    for (int i = 0; i < 4; i++) {
-      blocks[i] = new Block();
-    }
+    pos = new PVector(x, y);
+    initializeBlocks();
+    updatePos(x, y);
   }
   
+  void initializeBlocks() {}
+  void updateBlockPos() {}
+  
   void updatePos(float x, float y) {
-    position.set(x, y);
+    pos.set(x, y);
+    updateBlockPos();
   }
+  
   
   void display() {
     //noStroke();
     fill(col);
-    for (int i = 0; i < 4; i++) {
-      blocks[i].display(blockWidth);
+    for (Block block : blockList) {
+      block.display(blockWidth);
     }
+    fill(0, 0, 0);
+    rect(pos.x, pos.y, blockWidth, blockWidth);
   }
   
   void fall() {
-    updatePos(position.x, position.y + blockWidth);
+    updatePos(pos.x, pos.y + blockWidth);
   }
   
   boolean isOnFloor() {
-    Block lowestBlock = blocks[0];
-    for (Block block : blocks) {
-      if (block.position.y > lowestBlock.position.y) {
+    Block lowestBlock = blockList.get(0);
+    for (Block block : blockList) {
+      if (block.pos.y > lowestBlock.pos.y) {
         lowestBlock = block;
       }
     }
-    println("Lowest block pos: " + lowestBlock.position);
-    return lowestBlock.position.y >= height - blockWidth/2;
+    //if (lowestBlock.pos.y > height - blockWidth) {
+    //  pos.y -= blockWidth;
+    //  updatePos(pos.x, pos.y);
+    //}
+    return lowestBlock.pos.y >= height - blockWidth;
   }
 }
 
 class Block {
-  PVector position = new PVector();
+  PVector pos = new PVector();
   void display(float blockWidth) {
-    rect(position.x, position.y, blockWidth, blockWidth);
+    rect(pos.x, pos.y, blockWidth, blockWidth);
   }
-  
-  boolean doesCollide(float x, float y) {
-    return false;
-  }
-  
+ 
 }
 
 class Square extends Rock {
@@ -58,12 +63,18 @@ class Square extends Rock {
     col = color(0, 100, 100);
   }
   
-  void updatePos(float x, float y) {
-    super.updatePos(x, y);
-    blocks[0].position.set(position.x - blockWidth/2, position.y - blockWidth/2);
-    blocks[1].position.set(position.x + blockWidth/2, position.y - blockWidth/2);
-    blocks[2].position.set(position.x - blockWidth/2, position.y + blockWidth/2);
-    blocks[3].position.set(position.x + blockWidth/2, position.y + blockWidth/2);
+  void initializeBlocks() {
+    for (int i = 0; i < 4; i++) {
+      blockList.add(new Block());
+    }
+  }
+  
+  void updateBlockPos() {
+    super.updateBlockPos();
+    blockList.get(0).pos.set(pos.x, pos.y);
+    blockList.get(1).pos.set(pos.x + blockWidth, pos.y);
+    blockList.get(2).pos.set(pos.x, pos.y + blockWidth);
+    blockList.get(3).pos.set(pos.x + blockWidth, pos.y + blockWidth);
   }
   
   void display() {
@@ -77,9 +88,20 @@ class Cross extends Rock {
     super(x, y);
     col = color(90, 100, 100);
   }
+ 
+  void initializeBlocks() {
+    for (int i = 0; i < 5; i++) {
+      blockList.add(new Block());
+    }
+  }
   
-  void updatePos(float x, float y) {
-    super.updatePos(x, y);
+  void updateBlockPos() {
+    super.updateBlockPos();
+    blockList.get(0).pos.set(pos);
+    blockList.get(1).pos.set(pos.x, pos.y - blockWidth);
+    blockList.get(2).pos.set(pos.x - blockWidth, pos.y);
+    blockList.get(3).pos.set(pos.x + blockWidth, pos.y);
+    blockList.get(4).pos.set(pos.x, pos.y + blockWidth);
   }
   
   void display() {
@@ -93,9 +115,19 @@ class Line extends Rock {
     super(x, y);
     col = color(180, 100, 100);
   }
+
+  void initializeBlocks() {
+    for (int i = 0; i < 4; i++) {
+      blockList.add(new Block());
+    }
+  }
   
-  void updatePos(float x, float y) {
-    super.updatePos(x, y);
+  void updateBlockPos() {
+    super.updateBlockPos();
+    blockList.get(0).pos.set(pos.x, pos.y);
+    blockList.get(1).pos.set(pos.x, pos.y + blockWidth);
+    blockList.get(2).pos.set(pos.x, pos.y + blockWidth * 2);
+    blockList.get(3).pos.set(pos.x, pos.y + blockWidth * 3);
   }
   
   void display() {
@@ -109,9 +141,21 @@ class El extends Rock {
     super(x, y);
     col = color(270, 100, 100);
   }
+
+  void initializeBlocks() {
+    for (int i = 0; i < 5; i++) {
+      blockList.add(new Block());
+    }
+  }
   
-  void updatePos(float x, float y) {
-    super.updatePos(x, y);
+  void updateBlockPos() {
+    super.updateBlockPos();
+    
+    blockList.get(0).pos.set(pos.x + blockWidth, pos.y - blockWidth);
+    blockList.get(1).pos.set(pos.x + blockWidth, pos.y);
+    blockList.get(2).pos.set(pos.x + blockWidth, pos.y + blockWidth);
+    blockList.get(3).pos.set(pos.x, pos.y + blockWidth);
+    blockList.get(4).pos.set(pos.x - blockWidth, pos.y + blockWidth);
   }
   
   void display() {
