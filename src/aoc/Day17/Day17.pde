@@ -15,18 +15,14 @@ void setup() {
   colorMode(HSB, 360, 100, 100);
   size(70, 500);
   rectMode(CORNER);
-  //squareRock = new Square(50, 50);
-  //crossRock = new Cross(100, 20);
-  //horzRock = new HorzLine(300, 10);
-  //vertRock = new VertLine(350, 10);
-  //elRock = new El(400,10);
   
   allRocks = new ArrayList<>();
 }
 
 void draw() {
-  
   background(169, 39, 57);
+  
+  //  determine if time for a new rock to fall
   boolean needNewRock = true;
   for (Rock rock : allRocks) {
     if (!rock.isOnFloor()) {
@@ -39,6 +35,7 @@ void draw() {
     nextRockType++;
   }
   
+  //  draw all the rocks
   for (Rock rock : allRocks) {
     rock.display();
   }
