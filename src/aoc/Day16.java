@@ -1,20 +1,20 @@
 package aoc;
 
-import com.sun.source.doctree.SystemPropertyTree;
-
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Scanner;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Set;
 
 public class Day16 {
     static final int NUM_MINUTES = 30;
-    static AtomicInteger HIGHEST_FLOW = new AtomicInteger();
+//    static AtomicInteger HIGHEST_FLOW = new AtomicInteger();
+    static int HIGHEST_FLOW_INT = 0;
+    static int NUM_FINISHED_PATHS = 0;
 
     private static class RoomPair {
         final String room1;
@@ -37,14 +37,14 @@ public class Day16 {
         }
     }
     private static class CaveRoom {
-        final String valveName;
+        final String name;
         final int flow;
         final List<String> childNames;
         final List<CaveRoom> children;
         boolean valveOpen = false;
 
-        CaveRoom(String valveName, int flow) {
-            this.valveName = valveName;
+        CaveRoom(String name, int flow) {
+            this.name = name;
             this.flow = flow;
             this.childNames = new ArrayList<>();
             this.children = new ArrayList<>();
@@ -53,7 +53,7 @@ public class Day16 {
         @Override
         public String toString() {
             String openString = this.valveOpen ? "open" : "shut";
-            String output = valveName + "(" + openString + "): flow: " + flow + ", children: ";
+            String output = name + "(" + openString + "): flow: " + flow + ", children: ";
             for (String childName : childNames) {
                 output += childName + " ";
             }
@@ -65,7 +65,7 @@ public class Day16 {
             if (this == o) return true;
             if (o == null || o.getClass() != getClass()) return false;
             CaveRoom other = (CaveRoom)o;
-            return this.valveName.equals(other.valveName) &&
+            return this.name.equals(other.name) &&
                     this.flow == other.flow &&
                     this.childNames.equals(other.childNames) &&
                     this.children.equals(other.children);
@@ -73,7 +73,7 @@ public class Day16 {
 
         @Override
         public int hashCode() {
-            return Objects.hash(this.valveName, this.flow, this.childNames);
+            return Objects.hash(this.name, this.flow, this.childNames);
         }
     }
 
@@ -113,7 +113,7 @@ public class Day16 {
         for (CaveRoom room : caveRooms) {
             for (String childName : room.childNames) {
                 for (CaveRoom subRoom : caveRooms) {
-                    if (subRoom.valveName.equals( childName)) {
+                    if (subRoom.name.equals( childName)) {
                         room.children.add(subRoom);
                         break;
                     }
@@ -126,76 +126,72 @@ public class Day16 {
         CaveRoom head = caveRooms.get(0);
         String[] path = new String[NUM_MINUTES];
         traverseRooms(head, path, 0, 0, caveRooms);
-        System.out.println("Highest flow: " + HIGHEST_FLOW);
+        System.out.println("Highest flow: " + HIGHEST_FLOW_INT);
+        System.out.println("Number of finished paths: " + NUM_FINISHED_PATHS);
     }
 
     static void traverseRooms(CaveRoom currentRoom, String[] path, int idx, int totalFlow, List<CaveRoom> caveRooms) {
         boolean isTestPath = false;
-
         //  clear out path so it's easier to read
         for (int i = 0; i < path.length; i++) {
-            if (i > idx) {
+            if (i > idx - 1) {
                 path[i] = null;
             }
         }
 
-        if (path[0] != null && path[0].equals("->DD")
-                && path[1] != null && path[1].equals("open DD")
-                && path[2] != null &&  path[2].equals("->CC")
-                && path[3] != null && path[3].equals("->BB")
-                && path[4] != null && path[4].equals("open BB")
-                && path[5] != null && path[5].equals("->AA")
-                && path[6] != null && path[6].equals("->II")
-                && path[7] != null && path[7].equals("->JJ")
-                && path[8] != null && path[8].equals("open JJ")
-                && path[9] != null && path[9].equals("->II")
-                && path[10] != null && path[10].equals("->AA")
-                && path[11] != null && path[11].equals("->DD")
-                && path[12] != null && path[12].equals("->EE")
-                && path[13] != null && path[13].equals("->FF")
-                && path[14] != null && path[14].equals("->GG")
-                && path[15] != null && path[15].equals("->HH")
-                && path[16] != null && path[16].equals("open HH")
-
+        if (
+                path[0] != null && path[0].equals("->DD")
+//                && path[1] != null && path[1].equals("open DD")
+//                && path[2] != null &&  path[2].equals("->CC")
+//                && path[3] != null && path[3].equals("->BB")
+//                && path[4] != null && path[4].equals("open BB")
+//                && path[5] != null && path[5].equals("->AA")
+//                && path[6] != null && path[6].equals("->II")
+//                && path[7] != null && path[7].equals("->JJ")
+//                && path[8] != null && path[8].equals("open JJ")
+//                && path[9] != null && path[9].equals("->II")
+//                && path[10] != null && path[10].equals("->AA")
+//                && path[11] != null && path[11].equals("->DD")
+//                && path[12] != null && path[12].equals("->EE")
+//                && path[13] != null && path[13].equals("->FF")
+//                && path[14] != null && path[14].equals("->GG")
+//                && path[15] != null && path[15].equals("->HH")
+//                && path[16] != null && path[16].equals("open HH")
+//                && path[17] != null && path[17].equals("->GG")
+//                && path[18] != null && path[18].equals("->FF")
+//                && path[19] != null && path[19].equals("->EE")
+//                && path[20] != null && path[20].equals("open EE")
+//                && path[21] != null && path[21].equals("->DD")
+//                && path[22] != null && path[22].equals("->CC")
+//                && path[23] != null && path[23].equals("open CC")
         )
         {
             String pathStr = getPathString(path, idx);
+//            System.out.println("HItting test path: " );
             isTestPath = true;
         }
-        if (isInefficient(path, idx)) {
-//            System.out.println("Abandoning at " + idx + ": " + getPathString(path, idx));
-            return;
+
+        String pathString = getPathString(path, idx);
+        String testPathString = "->DD, open DD, ->CC, ->BB, open BB, ->AA, ->II, ->JJ, open JJ, ->II, ->AA, ->DD, ->EE, ->FF, ->GG, ->HH, open HH";
+        if (testPathString.contains(pathString)) {
+            boolean willThisWork = true;
         }
 
+        if (pathString.contains("inefficient")) {
+            int what = 0;
+        }
         //  reset all the valves for this path
+        Set<String> openCaves = new HashSet<>();
         for (CaveRoom freshRoom : caveRooms) {
             freshRoom.valveOpen = false;
-            for (int i = 0; i < idx - 1; i++) {
+            for (int i = 0; i < idx; i++) {
                 if (path[i].startsWith("open")) {
                     String openCave = path[i].split(" ")[1];
                     CaveRoom cave = getCaveByName(openCave, caveRooms);
                     cave.valveOpen = true;
+                    openCaves.add(openCave);
                 }
             }
-        }
-
-
-        //  see if all valves are already open; if so, can stop traversing rooms
-        boolean allOpen = true;
-        for (CaveRoom room : caveRooms) {
-            if(room.flow > 0 && !room.valveOpen) {
-                allOpen = false;
-            }
-        }
-
-        if (idx + 1 > NUM_MINUTES) {
-            if (totalFlow == 1622) {
-                System.out.println("Highest flow path: " + getPathString(path, idx));
-            }
-            if (totalFlow > HIGHEST_FLOW.get()) {
-                HIGHEST_FLOW.set(totalFlow);
-            }
-            return;
         }
 
         //  add up flow for open caves
@@ -207,43 +203,79 @@ public class Day16 {
         }
         if (isTestPath) {
             System.out.println(flowPerMinute);
-            if (flowPerMinute == 81) {
-                System.out.println(getPathString(path, idx));
-            }
+//            if (flowPerMinute == 81) {
+//                System.out.println(getPathString(path, idx));
+//            }
         }
 
-        totalFlow += flowPerMinute;
 
-
-
+        //  see if all valves are already open; if so, can stop traversing rooms
+        boolean allOpen = true;
+        for (CaveRoom room : caveRooms) {
+            if(room.flow > 0 && !room.valveOpen) {
+                allOpen = false;
+            }
+        }
         if (allOpen) {
             //  add the remaining flow and call it a day
 //            System.out.println("ALL OPEN!!!!");
             totalFlow += (NUM_MINUTES - idx) * flowPerMinute;
+            if (totalFlow > HIGHEST_FLOW_INT) {
+                HIGHEST_FLOW_INT = totalFlow;
+            }
+            NUM_FINISHED_PATHS++;
+            return;
+        }
+        totalFlow += flowPerMinute;
+
+        if (idx > NUM_MINUTES - 1) {
+            if (totalFlow == 1718) {
+                System.out.println("Highest flow path: " + getPathString(path, idx));
+            }
+            if (totalFlow > HIGHEST_FLOW_INT) {
+                HIGHEST_FLOW_INT = totalFlow;
+            }
+            System.out.println("Finished path: " + getPathString(path, path.length));
+            NUM_FINISHED_PATHS++;
             return;
         }
 
+        if (isInefficient(path, idx, caveRooms)) {
+//            System.out.println("Abandoning at " + idx + ": " + getPathString(path, idx));
+            path[idx] = "inefficient";
+            return;
+        }
+
+        //  if we haven't hit an end state, do it again:
         //*********** SUSPECT PROBLEM IS HERE
         //  continue traversing rooms
+        if (path[idx] != null) {
+            int jennifer = 9;
+        }
         if (!currentRoom.valveOpen && currentRoom.flow > 0) {
+            //  we need to look at both paths if it could potentially be opened
             String[] openPath = path.clone();
+            String[] closedPath = path.clone();
 
-            openPath[idx] = "open " + currentRoom.valveName;
-            currentRoom.valveOpen = true;
+            //  open
+            openPath[idx] = "open " + currentRoom.name;
             traverseRooms(currentRoom, openPath, idx + 1, totalFlow, caveRooms);
+            for (CaveRoom child : currentRoom.children) {
+                closedPath[idx] = "->" + child.name;
+                traverseRooms(child, closedPath, idx + 1, totalFlow, caveRooms);
+            }
+        } else {
+            for (CaveRoom child : currentRoom.children) {
+                path[idx] = "->" + child.name;
+                traverseRooms(child, path, idx + 1, totalFlow, caveRooms);
+            }
         }
-
-        for (CaveRoom child : currentRoom.children) {
-            path[idx] = "->" + child.valveName;
-            traverseRooms(child, path, idx + 1, totalFlow, caveRooms);
-        }
-
         //*********** END SUSPECT PROBLEM IS HERE
     }
 
     static CaveRoom getCaveByName(String name, List<CaveRoom> caveRooms) {
         for (CaveRoom room : caveRooms) {
-            if (name.equals(room.valveName)) {
+            if (name.equals(room.name)) {
                 return room;
             }
         }
@@ -251,87 +283,115 @@ public class Day16 {
         return null;
     }
 
-    static boolean doesBacktrack(String[] path, int idx) {
-        if (idx < 4) {
-            return false;
+    static CaveRoom getCaveFromPathEntry(String pathEntry, List<CaveRoom> caveRooms) {
+        String name = "";
+        if (pathEntry.startsWith("->")) {
+            name = pathEntry.substring(2);
+        } else if (pathEntry.startsWith("open ")) {
+            name = pathEntry.substring(5);
         }
-        if (path[idx-1].startsWith("->")
-                && path[idx-2].startsWith("->")
-                && path[idx-3].startsWith("->")
-                && path[idx-1].equals(path[idx-3])
-        ) {
-//            System.out.println("We backtrack: " + getPathString(path, idx));
-            return true;
+        for (CaveRoom room : caveRooms) {
+            if (room.name.equals(name)) {
+                return room;
+            }
         }
-        return false;
+        System.out.println("This shouldn't happen");
+        return null;
     }
 
     //  if we walk between the same two rooms without opening any valves,
     //  we're being inefficient -- no time for that!
-    static boolean isInefficient(String[] path, int idx) {
+    static boolean isInefficient(String[] path, int idx, List<CaveRoom> caveRooms) {
         int end = idx - 1;
-        int start = idx - 1;
-        List<String> roomsSinceLastOpenedValve = new ArrayList<>();
-        List<RoomPair> pairs  = new ArrayList<>();
-        //  see if we
-        //  if we just opened a valve, but we visited that room in the past, this path is inefficient
+        int start = end;
+        Set<CaveRoom> caveRoomsSinceLastOpenedValve = new HashSet<>();
         if (end < 0) return false;
-        String lastInstruction = path[end];
+        String lastStep = path[end];
 
-        if (path[end].startsWith("open") && end > 2) {
-            String roomName = path[end].substring(6);
-            for (int i = end-2; i > -1; i--) {
-                if (path[i].contains(roomName)) {
-//                    System.out.println("Inefficient because we've been here before!" + getPathString(path, idx));
-                    String pathString = getPathString(path, idx);
-                    return true;
-                }
+        //  some efficiency checks based on valves
+        int biggestUnopenedValved = caveRooms.stream()
+                .filter(r -> !r.valveOpen)
+                .mapToInt(r -> r.flow)
+                .max().orElse(0);
+
+
+        //  if we just left a room, and it has the biggest valve,
+        //  and we still didn't open it, this path is inefficient
+        if (end > 2
+                && path[end - 1].startsWith("->")
+                && path[end].startsWith("->")) {
+            CaveRoom vacatedRoom = getCaveFromPathEntry(path[end-1], caveRooms);
+            if (vacatedRoom.flow == biggestUnopenedValved) {
+                System.out.println("What are you waiting for to open this valve? biggest unopened: " + biggestUnopenedValved + ": " + getPathString(path, idx));
+                return true;
             }
-            return false;
         }
 
+        //  if we just opened a valve, but we visited that room in the past
+        //  AND there isn't a bigger unopened valve left, this path is inefficient
+        if (end > 2 && lastStep.startsWith("open")) {
+            CaveRoom roomToTest = getCaveFromPathEntry(lastStep, caveRooms);
+            if (roomToTest.flow >= biggestUnopenedValved) {
+                for (int i = end - 2; i > -1; i--) {
+                    if (path[i].contains(roomToTest.name)) {
+//                    System.out.println("Inefficient because we've been here before!" + getPathString(path, idx));
+                        String pathString = getPathString(path, end);
+                        return true;
+                    }
+                }
+            }
+        }
 
         //  go backwards down the path until we last opened a valve
-        for (int i = end; i > -1; i--) {
-            if(path[i].startsWith("open")) {
+        //  find the last time we opened a valve, or the beginning of the path
+        for (int i = end - 1; i > -1; i--) {
+            if (path[i].startsWith("open")) {
                 start = i + 1;
-                String roomName = path[i].split(" ")[1];
-                if (roomsSinceLastOpenedValve.contains(roomName)) {
-//                    System.out.println("Inefficient, we've been here before (stop on open)! " + getPathString(path, idx));
-                    String pathString = getPathString(path, idx);
-                    return true;
-                }
-                roomsSinceLastOpenedValve.add(roomName);
                 break;
-            } else {
-                String roomName = path[i].substring(2);
-                if (roomsSinceLastOpenedValve.contains(roomName)) {
-//                    System.out.println("Inefficient, we've been here before (don't stop on open)! " + getPathString(path, idx));
-                    String pathString = getPathString(path, idx);
-                    return true;
-                }
-                roomsSinceLastOpenedValve.add(path[i].substring(2));
-            }
-            if (i == 0) {
-                start = i;
+            } else if (i == 0) {
+                start = 0;
             }
         }
 
         if (end - start < 2) {
             return false;
         }
-//        for (int i  = start; i < end; i++) {
-//            pairs.add(new RoomPair(path[i], path[i+1]));
-//        }
-//        //  test all pairs for inefficiency
-//        for (int i = 0; i < pairs.size(); i++) {
-//            for (int j = i+1; j < pairs.size(); j++) {
-//                if (pairs.get(i).isEquivalent(pairs.get(j))) {
-//                    System.out.println("Inefficient! " + getPathString(path, idx));
+
+        for (int i = start; i < end + 1; i++) {
+            CaveRoom cave = getCaveFromPathEntry(path[i], caveRooms);
+            if (caveRoomsSinceLastOpenedValve.contains(cave)) {
+                return true;
+            } else {
+                caveRoomsSinceLastOpenedValve.add(cave);
+            }
+        }
+
+//        for (int i = end - 1; i > -1; i--) {
+//            if(path[i].startsWith("open")) {
+//                start = i + 1;
+//                String roomName = path[i].split(" ")[1];
+////                if (roomsSinceLastOpenedValve.contains(roomName)) {
+//////                    System.out.println("Inefficient, we've been here before (stop on open)! " + getPathString(path, idx));
+////                    String pathString = getPathString(path, idx);
+////                    return true;
+////                }
+//                if (caveRoomsSinceLastOpenedValve.contains())
+//                roomsSinceLastOpenedValve.add(roomName);
+//                break;
+//            } else {
+//                String roomName = path[i].substring(2);
+//                if (roomsSinceLastOpenedValve.contains(roomName)) {
+////                    System.out.println("Inefficient, we've been here before (don't stop on open)! " + getPathString(path, idx));
+//                    String pathString = getPathString(path, idx);
 //                    return true;
 //                }
+//                roomsSinceLastOpenedValve.add(path[i].substring(2));
+//            }
+//            if (i == 0) {
+//                start = i;
 //            }
 //        }
+
         return false;
     }
 
