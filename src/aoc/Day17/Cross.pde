@@ -1,6 +1,7 @@
 class Cross extends Rock {
   Cross(float x, float y) {
     super(x, y);
+    name = "cross";
     col = color(72, 100, 100);
   }
  

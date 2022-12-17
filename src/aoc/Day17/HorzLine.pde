@@ -1,6 +1,7 @@
 class HorzLine extends Rock {
   HorzLine(float x, float y) {
     super(x, y);
+    name = "horzLine";
     col = color(144, 100, 100);
   }
 

@@ -2,6 +2,7 @@
 class El extends Rock {
   El(float x, float y) {
     super(x, y);
+    name = "el";
     col = color(288, 100, 100);
   }
 

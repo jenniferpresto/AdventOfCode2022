@@ -1,14 +1,13 @@
 class Rock {
   PVector pos;
+  String name = "";
   color col;
   ArrayList<Block> blockList = new ArrayList<>();
   ArrayList<Block> leftBlocks = new ArrayList<>();
   ArrayList<Block> rightBlocks = new ArrayList<>();
   ArrayList<Block> topBlocks = new ArrayList<>();
   ArrayList<Block> bottomBlocks = new ArrayList<>();
-  
-  int blockWidth = BLOCK_WIDTH;
-  
+    
   Block rightmostBlock;
   Block leftmostBlock;
   Block bottommostBlock;
@@ -56,7 +55,7 @@ class Rock {
     //noStroke();
     fill(col);
     for (Block block : blockList) {
-      block.display(BLOCK_WIDTH);
+      block.display();
     }
     //fill(0, 0, 0);
     //rect(pos.x, pos.y, blockWidth, blockWidth);
@@ -64,7 +63,7 @@ class Rock {
   
   void fall() {
     
-    updatePos(pos.x, pos.y + blockWidth);
+    updatePos(pos.x, pos.y + BLOCK_WIDTH);
   }
   
   void applyJet(String dir) {
@@ -87,8 +86,32 @@ class Rock {
     return false;
   }
   
+  boolean collidesOtherRockRight(Rock other) {
+    for (Block rightBlock : this.rightBlocks) {
+      for (Block leftBlock : other.leftBlocks) {
+        if (rightBlock.pos.y == leftBlock.pos.y
+            && rightBlock.pos.x >= leftBlock.pos.x - BLOCK_WIDTH) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+  
+  boolean collidesOtherRockLeft(Rock other) {
+    for (Block rightBlock : this.rightBlocks) {
+      for (Block leftBlock : other.leftBlocks) {
+        if (rightBlock.pos.y == leftBlock.pos.y
+            && rightBlock.pos.x >= leftBlock.pos.x - BLOCK_WIDTH) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+  
   boolean isOnFloor() {
-    return bottommostBlock.pos.y >= height - blockWidth;
+    return bottommostBlock.pos.y >= height - BLOCK_WIDTH;
   }
   
   boolean isOnLeftWall() {
@@ -96,14 +119,14 @@ class Rock {
   }
   
   boolean isOnRightWall() {
-    return rightmostBlock.pos.x >= width - blockWidth;
+    return rightmostBlock.pos.x >= width - BLOCK_WIDTH;
   }
 }
 
 class Block {
   PVector pos = new PVector();
-  void display(float blockWidth) {
-    rect(pos.x, pos.y, blockWidth, blockWidth);
+  
+  void display() {
+    rect(pos.x, pos.y, BLOCK_WIDTH, BLOCK_WIDTH);
   }
- 
 }
