@@ -11,8 +11,10 @@ class Rock {
   
   Block rightmostBlock;
   Block leftmostBlock;
-  Block bottomBlock;
-  Block topBlock;
+  Block bottommostBlock;
+  Block topmostBlock;
+  
+  boolean isFalling = true;
   
   Rock(float x, float y) {
     pos = new PVector(x, y);
@@ -25,13 +27,13 @@ class Rock {
   void updateBlockPos() {}
   
   void setBlockExtremes() {
-    bottomBlock = blockList.get(0);
+    bottommostBlock = blockList.get(0);
     rightmostBlock = blockList.get(0);
     leftmostBlock = blockList.get(0);
-    topBlock = blockList.get(0);
+    topmostBlock = blockList.get(0);
     for (Block block : blockList) {
-      if (block.pos.y > bottomBlock.pos.y) {
-        bottomBlock = block;
+      if (block.pos.y > bottommostBlock.pos.y) {
+        bottommostBlock = block;
       }
       if (block.pos.x > rightmostBlock.pos.x) {
         rightmostBlock = block;
@@ -39,8 +41,8 @@ class Rock {
       if (block.pos.x < leftmostBlock.pos.x) {
         leftmostBlock = block;
       }
-      if (block.pos.y < topBlock.pos.y) {
-        topBlock = block;
+      if (block.pos.y < topmostBlock.pos.y) {
+        topmostBlock = block;
       }
     }
   }
@@ -61,6 +63,7 @@ class Rock {
   }
   
   void fall() {
+    
     updatePos(pos.x, pos.y + blockWidth);
   }
   
@@ -72,8 +75,20 @@ class Rock {
     }
   }
   
+  boolean collidesOtherRockDown(Rock other) {
+    for (Block bottomBlock : this.bottomBlocks) {
+      for (Block topBlock : other.topBlocks) {
+        if (bottomBlock.pos.x == topBlock.pos.x
+            && bottomBlock.pos.y >= topBlock.pos.y - BLOCK_WIDTH) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+  
   boolean isOnFloor() {
-    return bottomBlock.pos.y >= height - blockWidth;
+    return bottommostBlock.pos.y >= height - blockWidth;
   }
   
   boolean isOnLeftWall() {

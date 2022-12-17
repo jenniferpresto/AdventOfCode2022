@@ -14,9 +14,9 @@ class Square extends Rock {
   void updateBlockPos() {
     super.updateBlockPos();
     blockList.get(0).pos.set(pos.x, pos.y); // top left
-    blockList.get(1).pos.set(pos.x + blockWidth, pos.y); // top right
-    blockList.get(2).pos.set(pos.x, pos.y + blockWidth); // bottom left
-    blockList.get(3).pos.set(pos.x + blockWidth, pos.y + blockWidth); // bottom right
+    blockList.get(1).pos.set(pos.x + BLOCK_WIDTH, pos.y); // top right
+    blockList.get(2).pos.set(pos.x, pos.y + BLOCK_WIDTH); // bottom left
+    blockList.get(3).pos.set(pos.x + BLOCK_WIDTH, pos.y + BLOCK_WIDTH); // bottom right
   }
   
   void setBlockExtremes() {

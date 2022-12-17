@@ -13,9 +13,9 @@ class HorzLine extends Rock {
   void updateBlockPos() {
     super.updateBlockPos();
     blockList.get(0).pos.set(pos.x, pos.y); // left
-    blockList.get(1).pos.set(pos.x + blockWidth, pos.y); // second
-    blockList.get(2).pos.set(pos.x + blockWidth * 2, pos.y); // third
-    blockList.get(3).pos.set(pos.x + blockWidth * 3, pos.y); // right
+    blockList.get(1).pos.set(pos.x + BLOCK_WIDTH, pos.y); // second
+    blockList.get(2).pos.set(pos.x + BLOCK_WIDTH * 2, pos.y); // third
+    blockList.get(3).pos.set(pos.x + BLOCK_WIDTH * 3, pos.y); // right
   }
 
   void setBlockExtremes() {

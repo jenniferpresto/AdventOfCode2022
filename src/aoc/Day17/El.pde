@@ -14,11 +14,11 @@ class El extends Rock {
   void updateBlockPos() {
     super.updateBlockPos();
     
-    blockList.get(0).pos.set(pos.x + blockWidth, pos.y - blockWidth); // top right
-    blockList.get(1).pos.set(pos.x + blockWidth, pos.y); // second from top
-    blockList.get(2).pos.set(pos.x + blockWidth, pos.y + blockWidth); // right corner
-    blockList.get(3).pos.set(pos.x, pos.y + blockWidth); // second from left 
-    blockList.get(4).pos.set(pos.x - blockWidth, pos.y + blockWidth); // bottom left
+    blockList.get(0).pos.set(pos.x + BLOCK_WIDTH, pos.y - BLOCK_WIDTH); // top right
+    blockList.get(1).pos.set(pos.x + BLOCK_WIDTH, pos.y); // second from top
+    blockList.get(2).pos.set(pos.x + BLOCK_WIDTH, pos.y + BLOCK_WIDTH); // right corner
+    blockList.get(3).pos.set(pos.x, pos.y + BLOCK_WIDTH); // second from left 
+    blockList.get(4).pos.set(pos.x - BLOCK_WIDTH, pos.y + BLOCK_WIDTH); // bottom left
   }
   
   void setBlockExtremes() {

@@ -13,10 +13,10 @@ class Cross extends Rock {
   void updateBlockPos() {
     super.updateBlockPos();
     blockList.get(0).pos.set(pos); // middle
-    blockList.get(1).pos.set(pos.x, pos.y - blockWidth); // top
-    blockList.get(2).pos.set(pos.x - blockWidth, pos.y); // left
-    blockList.get(3).pos.set(pos.x + blockWidth, pos.y); // right
-    blockList.get(4).pos.set(pos.x, pos.y + blockWidth); // bottom
+    blockList.get(1).pos.set(pos.x, pos.y - BLOCK_WIDTH); // top
+    blockList.get(2).pos.set(pos.x - BLOCK_WIDTH, pos.y); // left
+    blockList.get(3).pos.set(pos.x + BLOCK_WIDTH, pos.y); // right
+    blockList.get(4).pos.set(pos.x, pos.y + BLOCK_WIDTH); // bottom
   }
   
   void setBlockExtremes() {

@@ -13,9 +13,9 @@ class VertLine extends Rock {
   void updateBlockPos() {
     super.updateBlockPos();
     blockList.get(0).pos.set(pos.x, pos.y); // top
-    blockList.get(1).pos.set(pos.x, pos.y + blockWidth); // second
-    blockList.get(2).pos.set(pos.x, pos.y + blockWidth * 2); // third
-    blockList.get(3).pos.set(pos.x, pos.y + blockWidth * 3); // bottom
+    blockList.get(1).pos.set(pos.x, pos.y + BLOCK_WIDTH); // second
+    blockList.get(2).pos.set(pos.x, pos.y + BLOCK_WIDTH * 2); // third
+    blockList.get(3).pos.set(pos.x, pos.y + BLOCK_WIDTH * 3); // bottom
   }
 
   void setBlockExtremes() {

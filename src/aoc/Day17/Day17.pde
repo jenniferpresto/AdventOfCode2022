@@ -7,6 +7,7 @@ ArrayList<Rock> allRocks;
 int nextRockType = 0;
 static final int BLOCK_WIDTH = 10;
 final int TUNNEL_WIDTH = BLOCK_WIDTH * 7;
+Rock fallingRock;
 
 void setup() {
   String[] data = loadStrings("../../../testData/Day17.txt");
@@ -23,16 +24,32 @@ void draw() {
   background(169, 39, 57);
   
   //  determine if time for a new rock to fall
-  boolean needNewRock = true;
-  for (Rock rock : allRocks) {
-    if (!rock.isOnFloor()) {
-      needNewRock = false;
-      rock.fall();
-    }
-  }
-  if (needNewRock) {
-    allRocks.add(getNewRock(nextRockType));
+  if (fallingRock == null) {
+    fallingRock = getNewRock(nextRockType);
+    allRocks.add(fallingRock);
     nextRockType++;
+  }
+  
+  if (fallingRock != null) {
+    if (fallingRock.isOnFloor()) {
+      fallingRock.isFalling = false;
+      fallingRock = null;
+    }
+    if (fallingRock != null) {
+      for (Rock otherRock : allRocks) {
+        if (otherRock == fallingRock) {
+          continue;
+        }
+        if (fallingRock.collidesOtherRockDown(otherRock)) {
+          fallingRock.isFalling = false;
+          fallingRock = null;
+          break;
+        }
+      }
+    }
+    if (fallingRock != null) {
+      fallingRock.fall();
+    }
   }
   
   //  draw all the rocks
