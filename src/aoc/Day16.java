@@ -173,13 +173,10 @@ public class Day16 {
 
         String pathString = getPathString(path, idx);
         String testPathString = "->DD, open DD, ->CC, ->BB, open BB, ->AA, ->II, ->JJ, open JJ, ->II, ->AA, ->DD, ->EE, ->FF, ->GG, ->HH, open HH";
-        if (testPathString.contains(pathString)) {
+        if (testPathString.startsWith(pathString)) {
             boolean willThisWork = true;
         }
 
-        if (pathString.contains("inefficient")) {
-            int what = 0;
-        }
         //  reset all the valves for this path
         Set<String> openCaves = new HashSet<>();
         for (CaveRoom freshRoom : caveRooms) {
@@ -346,7 +343,7 @@ public class Day16 {
         //  find the last time we opened a valve, or the beginning of the path
         for (int i = end - 1; i > -1; i--) {
             if (path[i].startsWith("open")) {
-                start = i + 1;
+                start = i;
                 break;
             } else if (i == 0) {
                 start = 0;
@@ -357,7 +354,7 @@ public class Day16 {
             return false;
         }
 
-        for (int i = start; i < end + 1; i++) {
+        for (int i = start; i < end; i++) {
             CaveRoom cave = getCaveFromPathEntry(path[i], caveRooms);
             if (caveRoomsSinceLastOpenedValve.contains(cave)) {
                 return true;
