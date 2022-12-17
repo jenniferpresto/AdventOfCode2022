@@ -36,15 +36,19 @@ class Rock {
   
   boolean isOnFloor() {
     Block lowestBlock = blockList.get(0);
+    Block rightmostBlock = blockList.get(0);
+    Block leftmostBlock = blockList.get(0);
     for (Block block : blockList) {
       if (block.pos.y > lowestBlock.pos.y) {
         lowestBlock = block;
       }
+      if (block.pos.x > rightmostBlock.pos.x) {
+        rightmostBlock = block;
+      }
+      if (block.pos.x < leftmostBlock.pos.x) {
+        leftmostBlock = block;
+      }
     }
-    //if (lowestBlock.pos.y > height - blockWidth) {
-    //  pos.y -= blockWidth;
-    //  updatePos(pos.x, pos.y);
-    //}
     return lowestBlock.pos.y >= height - blockWidth;
   }
 }
@@ -86,7 +90,7 @@ class Square extends Rock {
 class Cross extends Rock {
   Cross(float x, float y) {
     super(x, y);
-    col = color(90, 100, 100);
+    col = color(72, 100, 100);
   }
  
   void initializeBlocks() {
@@ -110,10 +114,37 @@ class Cross extends Rock {
   }
 }
 
-class Line extends Rock {
-  Line(float x, float y) {
+class HorzLine extends Rock {
+  HorzLine(float x, float y) {
     super(x, y);
-    col = color(180, 100, 100);
+    col = color(144, 100, 100);
+  }
+
+  void initializeBlocks() {
+    for (int i = 0; i < 4; i++) {
+      blockList.add(new Block());
+    }
+  }
+  
+  void updateBlockPos() {
+    super.updateBlockPos();
+    blockList.get(0).pos.set(pos.x, pos.y);
+    blockList.get(1).pos.set(pos.x + blockWidth, pos.y);
+    blockList.get(2).pos.set(pos.x + blockWidth * 2, pos.y);
+    blockList.get(3).pos.set(pos.x + blockWidth * 3, pos.y);
+  }
+  
+  void display() {
+    super.display();
+    
+  }
+}
+
+
+class VertLine extends Rock {
+  VertLine(float x, float y) {
+    super(x, y);
+    col = color(216, 100, 100);
   }
 
   void initializeBlocks() {
@@ -139,7 +170,7 @@ class Line extends Rock {
 class El extends Rock {
   El(float x, float y) {
     super(x, y);
-    col = color(270, 100, 100);
+    col = color(288, 100, 100);
   }
 
   void initializeBlocks() {
