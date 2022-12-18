@@ -1,5 +1,5 @@
 static final int BLOCK_WIDTH = 10;
-static final int FLOOR_HEIGHT = 700;
+static final int FLOOR_HEIGHT = 0;
 static final int TUNNEL_WIDTH = BLOCK_WIDTH * 7;
 String[] data;
 
@@ -9,24 +9,27 @@ int windIndex = 0;
 Rock fallingRock;
 boolean isFallCycle = true;
 boolean startedTestingCycles = false;
+int numRocksInRepeatingCycle = 0;
 
 Block topmostBlockInPile = null;
 
 ArrayList<TopShape> allTopShapesSinceWindCycled;
 ArrayList<TopShape> repeatingShapes;
 int[] topBlockInEachColumn = new int[7];
+HashMap<Long, Long> heightAfterEachRock;
 
 void setup() {
-  frameRate(300);
+  frameRate(1000);
   data = loadStrings("../../../data/Day17.txt");
   println(data[0].length());
   colorMode(HSB, 360, 100, 100);
-  size(70, 700);
+  size(70, 1000);
   rectMode(CORNER);
   
   allRocks = new ArrayList<>();
   allTopShapesSinceWindCycled = new ArrayList<>();
   repeatingShapes = new ArrayList<>();
+  heightAfterEachRock = new HashMap<>();
 
   for (int i = 0; i < 7; i++) {
     topBlockInEachColumn[i] = FLOOR_HEIGHT;
@@ -54,11 +57,11 @@ void draw() {
     isFallCycle = false;
     
       //  draw all the rocks
-    //if (topmostBlockInPile != null && topmostBlockInPile.pos.y > 0) {
+    if (topmostBlockInPile != null && topmostBlockInPile.pos.y > 0) {
       for (Rock rock : allRocks) {
         rock.display();
       }
-    //}
+    }
     return;
   }
   
@@ -73,11 +76,11 @@ void draw() {
   }
   
   //  draw all the rocks
-  //if (topmostBlockInPile != null && topmostBlockInPile.pos.y > 0) {
+  if (topmostBlockInPile != null && topmostBlockInPile.pos.y > 0) {
     for (Rock rock : allRocks) {
       rock.display();
     }
-  //}
+  }
 }
 
 void fallCycle() {
@@ -185,12 +188,35 @@ void testColumnHeights() {
       //println("how big is cycle? " + allTopShapesSinceWindCycled.size() + ", we're at " + i);
       for (int j = 0; j < repeatingShapes.size(); j++) {
         if (repeatingShapes.get(j).equals(testShape)) {
-          int frame = frameCount;
-          int pointInCycle = frame % 35;
-          //println("This has repeated before: frame: " + frame + ", point? " + pointInCycle);
-          return; //<>//
+          if (allRocks.get(allRocks.size() -1) != fallingRock) {
+            println("Doing something wrong"); //<>//
+          }
+          numRocksInRepeatingCycle = repeatingShapes.size();
+          long thisRockNum = (long)allRocks.size();
+          long numRocksToGo = 1000000000000L - thisRockNum;
+          if (numRocksToGo % numRocksInRepeatingCycle == 0) {
+            println("we're whole cycles away from a trillion: " + allRocks.size());
+            println("height now is: " + fallingRock.topmostBlock.pos.y);
+            long numCyclesToGetThere = numRocksToGo / numRocksInRepeatingCycle;
+            println("We have " + numCyclesToGetThere + " to go");
+            long lastMatchingCycle = thisRockNum - numRocksInRepeatingCycle;
+            long heightRightNow = (long)fallingRock.topmostBlock.pos.y;
+            long heightLastTimeWeWereHere = heightAfterEachRock.get(lastMatchingCycle);
+            println("Last time we were here: " + heightLastTimeWeWereHere + ", now it's " + heightRightNow);
+            long heightDifference = heightRightNow - heightLastTimeWeWereHere;
+            println("Each cycle adds an additional " + heightDifference + " to the pile");
+            long eventualAdditionalHeight = heightDifference * numCyclesToGetThere;
+            println("Eventual additional height is: " + eventualAdditionalHeight); //<>//
+            long consistentHeight = eventualAdditionalHeight + heightRightNow;
+            println("So this number should be consistent: " + consistentHeight);
+            consistentHeight -= FLOOR_HEIGHT;
+            println("******* Answer: " + (consistentHeight / BLOCK_WIDTH * -1) + " ************");
+            heightAfterEachRock.put((long)allRocks.size(), (long)fallingRock.topmostBlock.pos.y);
+          }
+          return;
         }
       }
+      heightAfterEachRock.put((long)allRocks.size(), (long)fallingRock.topmostBlock.pos.y);
       repeatingShapes.add(testShape);
       return;
     }
