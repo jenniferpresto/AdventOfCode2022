@@ -1,5 +1,5 @@
 static final int BLOCK_WIDTH = 10;
-static final int FLOOR_HEIGHT = 0;
+static final int FLOOR_HEIGHT = 750;
 static final int TUNNEL_WIDTH = BLOCK_WIDTH * 7;
 String[] data;
 
@@ -19,11 +19,12 @@ int[] topBlockInEachColumn = new int[7];
 HashMap<Long, Long> heightAfterEachRock;
 
 void setup() {
-  frameRate(1000);
+  //frameRate(1000);
+  frameRate(30);
   data = loadStrings("../../../data/Day17.txt");
   println(data[0].length());
   colorMode(HSB, 360, 100, 100);
-  size(70, 1000);
+  size(70, 750);
   rectMode(CORNER);
   
   allRocks = new ArrayList<>();
@@ -37,10 +38,10 @@ void setup() {
 }
 
 void draw() {
-  if (topmostBlockInPile != null && topmostBlockInPile.pos.y > 0) {
-    background(169, 39, 57);
+  //if (topmostBlockInPile != null && topmostBlockInPile.pos.y > 0) {
+    background(169, 10, 60);
     drawGrid();
-  }
+  //}
 
   //  determine if time for a new rock to fall
   if (fallingRock == null) {    
@@ -57,11 +58,11 @@ void draw() {
     isFallCycle = false;
     
       //  draw all the rocks
-    if (topmostBlockInPile != null && topmostBlockInPile.pos.y > 0) {
+    //if (topmostBlockInPile != null && topmostBlockInPile.pos.y > 0) {
       for (Rock rock : allRocks) {
         rock.display();
       }
-    }
+    //}
     return;
   }
   
@@ -76,11 +77,11 @@ void draw() {
   }
   
   //  draw all the rocks
-  if (topmostBlockInPile != null && topmostBlockInPile.pos.y > 0) {
+  //if (topmostBlockInPile != null && topmostBlockInPile.pos.y > 0) {
     for (Rock rock : allRocks) {
       rock.display();
     }
-  }
+  //}
 }
 
 void fallCycle() {
@@ -225,7 +226,7 @@ void testColumnHeights() {
 }
 
 void drawGrid() {
-  fill(0.5);
+  stroke(color(0, 0, 80, 50));
   for (int i = 10; i < width; i += BLOCK_WIDTH) {
     line(i, 0, i, height);
   }
