@@ -1,6 +1,6 @@
 static final int BLOCK_WIDTH = 10;
-static final int FLOOR_HEIGHT = 1700;
-final int TUNNEL_WIDTH = BLOCK_WIDTH * 7;
+static final int FLOOR_HEIGHT = 700;
+static final int TUNNEL_WIDTH = BLOCK_WIDTH * 7;
 String[] data;
 
 ArrayList<Rock> allRocks;
@@ -8,18 +8,29 @@ int nextRockType = 0;
 int windIndex = 0;
 Rock fallingRock;
 boolean isFallCycle = true;
+boolean startedTestingCycles = false;
 
 Block topmostBlockInPile = null;
 
+ArrayList<TopShape> allTopShapesSinceWindCycled;
+ArrayList<TopShape> repeatingShapes;
+int[] topBlockInEachColumn = new int[7];
+
 void setup() {
-  frameRate(1000);
+  frameRate(300);
   data = loadStrings("../../../data/Day17.txt");
   println(data[0].length());
   colorMode(HSB, 360, 100, 100);
-  size(70, 1000);
+  size(70, 700);
   rectMode(CORNER);
   
   allRocks = new ArrayList<>();
+  allTopShapesSinceWindCycled = new ArrayList<>();
+  repeatingShapes = new ArrayList<>();
+
+  for (int i = 0; i < 7; i++) {
+    topBlockInEachColumn[i] = FLOOR_HEIGHT;
+  }
 }
 
 void draw() {
@@ -27,16 +38,12 @@ void draw() {
     background(169, 39, 57);
     drawGrid();
   }
-  //println("Frame # " + frameCount);
 
   //  determine if time for a new rock to fall
-  if (fallingRock == null) {
+  if (fallingRock == null) {    
     int highestPoint = topmostBlockInPile == null ? FLOOR_HEIGHT : (int)topmostBlockInPile.pos.y;
     fallingRock = getNewRock(nextRockType, highestPoint);
     allRocks.add(fallingRock);
-    if (allRocks.size() == 99) {
-      println("Debug"); //<>//
-    }
     if (allRocks.size() % 100 == 0) {
       println("Added rock # " + allRocks.size());
     }
@@ -47,11 +54,11 @@ void draw() {
     isFallCycle = false;
     
       //  draw all the rocks
-    if (topmostBlockInPile != null && topmostBlockInPile.pos.y > 0) {
+    //if (topmostBlockInPile != null && topmostBlockInPile.pos.y > 0) {
       for (Rock rock : allRocks) {
         rock.display();
       }
-    }
+    //}
     return;
   }
   
@@ -66,18 +73,21 @@ void draw() {
   }
   
   //  draw all the rocks
-  if (topmostBlockInPile != null && topmostBlockInPile.pos.y > 0) {
+  //if (topmostBlockInPile != null && topmostBlockInPile.pos.y > 0) {
     for (Rock rock : allRocks) {
       rock.display();
     }
-  }
+  //}
 }
 
 void fallCycle() {
-  //println("Fall cycle");
   if (fallingRock.isOnFloor()) {
     fallingRock.isFalling = false;
     setTopmostBlockInPile();
+    saveColumnHeights();
+    if (startedTestingCycles) {
+      testColumnHeights();
+    }
     fallingRock = null;
     return;
   }
@@ -88,31 +98,25 @@ void fallCycle() {
     if (fallingRock.collidesOtherRockDown(allRocks.get(i))) {
       fallingRock.isFalling = false;
       setTopmostBlockInPile();
+      saveColumnHeights();
+      if (startedTestingCycles) {
+        testColumnHeights();
+      }
       fallingRock = null;
       return;
     }
   }
-  //for (Rock otherRock : allRocks) {
-  //  if (otherRock == fallingRock) {
-  //    continue;
-  //  }
-  //  if (fallingRock.collidesOtherRockDown(otherRock)) {
-  //    fallingRock.isFalling = false;
-  //    setTopmostBlockInPile();
-  //    fallingRock = null;
-  //    return;
-  //  }
-  //}
   fallingRock.fall();
 }
 
 void windCycle() {
   String wind = data[0].substring(windIndex, windIndex + 1);
-  //println("wind cycle: " + wind);
+  //println("Wind!: " + wind);
   windIndex++;
   if (windIndex > data[0].length() - 1) {
-    println("Starting over with the wind");
+    //println("Starting over with the wind");
     windIndex = 0;
+    startedTestingCycles = true;
   }
   if (wind.equals(">") && fallingRock.isOnRightWall()) {
     return;
@@ -135,20 +139,6 @@ void windCycle() {
     }
   }
 
-  //for (Rock otherRock : allRocks) {
-  //  if (otherRock == fallingRock) {
-  //    continue;
-  //  }
-  //  if (wind.equals(">")) {
-  //    if (fallingRock.collidesOtherRockRight(otherRock)) {
-  //      return;
-  //    }
-  //  } else {
-  //    if (fallingRock.collidesOtherRockLeft(otherRock)) {
-  //      return;
-  //    }
-  //  }
-  //}
   fallingRock.applyJet(wind);
 }
 
@@ -161,6 +151,51 @@ void setTopmostBlockInPile() {
     if (fallingRock.topmostBlock.pos.y < topmostBlockInPile.pos.y) {
       topmostBlockInPile = fallingRock.topmostBlock;
     }
+}
+
+void saveColumnHeights() {
+  for (Block block : fallingRock.blockList) {
+    int col = (int)block.pos.x / 10;
+    if (block.pos.y < topBlockInEachColumn[col]) {
+      topBlockInEachColumn[col] = (int)block.pos.y;
+    }
+  }
+  
+}
+
+void testColumnHeights() {
+  //  make all of them relative to each other
+  TopShape testShape = new TopShape();
+  testShape.lastShape = fallingRock.name;
+  testShape.windIndex = windIndex;
+  int baseY = topBlockInEachColumn[0];
+  for (int i = 1; i < 7; i++) {
+    testShape.colHeights[i] = topBlockInEachColumn[i] - baseY;
+  }
+  
+  //if (windIndex == 14 && fallingRock.name.equals("el")) {
+  if (windIndex == 4 && fallingRock.name.equals("vertLine")) {
+    println("Testing test ! Frame # " + frameCount + ", numRocks; " + allRocks.size());
+    println(testShape);
+  }
+  
+  for (int i = 0; i < allTopShapesSinceWindCycled.size(); i++) {
+    if (allTopShapesSinceWindCycled.get(i).equals(testShape)) {
+      //println("We have a match!!  windCycle: " + windIndex + ": " + testShape);
+      //println("how big is cycle? " + allTopShapesSinceWindCycled.size() + ", we're at " + i);
+      for (int j = 0; j < repeatingShapes.size(); j++) {
+        if (repeatingShapes.get(j).equals(testShape)) {
+          int frame = frameCount;
+          int pointInCycle = frame % 35;
+          //println("This has repeated before: frame: " + frame + ", point? " + pointInCycle);
+          return; //<>//
+        }
+      }
+      repeatingShapes.add(testShape);
+      return;
+    }
+  }
+  allTopShapesSinceWindCycled.add(testShape);
 }
 
 void drawGrid() {

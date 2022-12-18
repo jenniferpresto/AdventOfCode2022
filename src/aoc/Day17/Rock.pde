@@ -56,7 +56,7 @@ class Rock {
     }
   }
   
-  void updatePos(float x, float y) {
+  void updatePos(int x, int y) {
     pos.set(x, y);
     updateBlockPos();
   }
@@ -74,14 +74,14 @@ class Rock {
   }
   
   void fall() {
-    updatePos(pos.x, pos.y + BLOCK_WIDTH);
+    updatePos((int)pos.x, (int)pos.y + BLOCK_WIDTH);
   }
   
   void applyJet(String dir) {
     if (dir.equals(">")) {
-      updatePos(pos.x + BLOCK_WIDTH, pos.y);
+      updatePos((int)pos.x + BLOCK_WIDTH, (int)pos.y);
     } else if (dir.equals("<")) {
-      updatePos(pos.x -= BLOCK_WIDTH, pos.y);
+      updatePos((int)pos.x - BLOCK_WIDTH, (int)pos.y);
     }
   }
   
