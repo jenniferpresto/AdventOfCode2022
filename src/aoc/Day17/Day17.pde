@@ -8,7 +8,10 @@ int windIndex = 0;
 Rock fallingRock;
 boolean isFallCycle = true;
 
+Block topmostBlockInPile = null;
+
 void setup() {
+  frameRate(10);
   data = loadStrings("../../../testData/Day17.txt");
   colorMode(HSB, 360, 100, 100);
   size(70, 500);
@@ -19,16 +22,22 @@ void setup() {
 
 void draw() {
   background(169, 39, 57);
-  
+  drawGrid();
+  println("Frame # " + frameCount);
+
   //  determine if time for a new rock to fall
   if (fallingRock == null) {
-    fallingRock = getNewRock(nextRockType);
+    int highestPoint = topmostBlockInPile == null ? height : (int)topmostBlockInPile.pos.y; //<>//
+    fallingRock = getNewRock(nextRockType, highestPoint);
     allRocks.add(fallingRock);
     nextRockType++;
-    isFallCycle = true;
-    if (fallingRock.name.equals("vertLine") && allRocks.size() > 3) {
-      int jennifer = 9;
+    isFallCycle = false;
+    
+      //  draw all the rocks
+    for (Rock rock : allRocks) {
+      rock.display();
     }
+    return;
   }
   
   if (fallingRock != null) {
@@ -48,8 +57,10 @@ void draw() {
 }
 
 void fallCycle() {
+  println("Fall");
   if (fallingRock.isOnFloor()) {
     fallingRock.isFalling = false;
+    setTopmostBlockInPile();
     fallingRock = null;
     return;
   }
@@ -59,6 +70,7 @@ void fallCycle() {
     }
     if (fallingRock.collidesOtherRockDown(otherRock)) {
       fallingRock.isFalling = false;
+      setTopmostBlockInPile();
       fallingRock = null;
       return;
     }
@@ -67,22 +79,26 @@ void fallCycle() {
 }
 
 void windCycle() {
-  if (fallingRock.isOnFloor()) {
-    fallingRock.isFalling = false;
-    fallingRock = null;
-    return;
-  }
-  for (Rock otherRock : allRocks) {
-    if (otherRock == fallingRock) {
-      continue;
-    }
-    if (fallingRock.collidesOtherRockDown(otherRock)) {
-      fallingRock.isFalling = false;
-      fallingRock = null;
-      return;
-    }
-  }
+
+  //if (fallingRock.isOnFloor()) {
+  //  fallingRock.isFalling = false;
+  //  setTopmostBlockInPile();
+  //  fallingRock = null;
+  //  return;
+  //}
+  //for (Rock otherRock : allRocks) {
+  //  if (otherRock == fallingRock) {
+  //    continue;
+  //  }
+  //  if (fallingRock.collidesOtherRockDown(otherRock)) {
+  //    fallingRock.isFalling = false;
+  //    setTopmostBlockInPile();
+  //    fallingRock = null;
+  //    return;
+  //  }
+  //}
   String wind = data[0].substring(windIndex, windIndex + 1);
+  println("Wind: " + wind);
   windIndex++;
   if (windIndex > data[0].length() - 1) {
     windIndex = 0;
@@ -110,17 +126,45 @@ void windCycle() {
   fallingRock.applyJet(wind);
 }
 
-Rock getNewRock(int type) {
-  if (type % 5 == 0) {
-    return new HorzLine(BLOCK_WIDTH * 2, 0);
-  } else if (type % 5 == 1) {
-    return new Cross (BLOCK_WIDTH * 3, 0);
-  } else if (type % 5 == 2) {
-    return new El(BLOCK_WIDTH * 3, 0); 
-  } else if (type % 5 == 3) {
-    return new VertLine(BLOCK_WIDTH * 2, 0);
-  } else if (type % 5 == 4) {
-    return new Square(BLOCK_WIDTH * 2, 0);
+void setTopmostBlockInPile() {
+    if (topmostBlockInPile == null) {
+      topmostBlockInPile = fallingRock.topmostBlock;
+      return;
+    }
+    
+    if (fallingRock.topmostBlock.pos.y < topmostBlockInPile.pos.y) {
+      topmostBlockInPile = fallingRock.topmostBlock;
+    }
+}
+
+void drawGrid() {
+  fill(0.5);
+  for (int i = 10; i < width; i += BLOCK_WIDTH) {
+    line(i, 0, i, height);
   }
-  return null;
+  for (int j = 10; j < height; j += BLOCK_WIDTH) {
+    line(0, j, width, j);
+  }
+}
+
+Rock getNewRock(int type, int topY) {
+  Rock newRock;
+  if (type % 5 == 0) {
+    newRock = new HorzLine(0, 0);
+  } else if (type % 5 == 1) {
+    newRock = new Cross(0, 0);
+  } else if (type % 5 == 2) {
+    newRock = new El(0, 0); 
+  } else if (type % 5 == 3) {
+    newRock = new VertLine(0, 0);
+  } else if (type % 5 == 4) {
+    newRock = new Square(0, 0);
+  } else {
+    println("Shouldn't happen");
+    newRock = null;
+  }
+  int newX = newRock.getStartingXPos();
+  int newY = newRock.getStartingYPos(topY);
+  newRock.updatePos(newX, newY);
+  return newRock;
 }

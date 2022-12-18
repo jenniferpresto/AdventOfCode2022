@@ -1,5 +1,5 @@
 class Square extends Rock {
-  Square(float x, float y) {
+  Square(int x, int y) {
     super(x, y);
     name = "square";
     col = color(0, 100, 100);

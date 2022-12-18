@@ -1,5 +1,5 @@
 class VertLine extends Rock {
-  VertLine(float x, float y) {
+  VertLine(int x, int y) {
     super(x, y);
     name = "vertLine";
     col = color(216, 100, 100);

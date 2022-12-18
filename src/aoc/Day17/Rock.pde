@@ -15,11 +15,21 @@ class Rock {
   
   boolean isFalling = true;
   
-  Rock(float x, float y) {
+  Rock(int x, int y) {
     pos = new PVector(x, y);
     initializeBlocks();
     updatePos(x, y);
     setBlockExtremes();
+  }
+  
+  int getStartingXPos() {
+    int additionalWidth = (int)pos.x - (int)leftmostBlock.pos.x; 
+    return BLOCK_WIDTH * 2 + additionalWidth;
+  }
+  
+  int getStartingYPos(int highestPoint) {
+    int additionalHeight = (int)bottommostBlock.pos.y + BLOCK_WIDTH - (int)pos.y;
+    return highestPoint - (BLOCK_WIDTH * 3) - additionalHeight;
   }
   
   void initializeBlocks() {}
@@ -57,17 +67,17 @@ class Rock {
     for (Block block : blockList) {
       block.display();
     }
-    //fill(0, 0, 0);
-    //rect(pos.x, pos.y, blockWidth, blockWidth);
+    //if (!isFalling) {
+    //  fill(0, 0, 0);
+    //  rect(pos.x, pos.y, BLOCK_WIDTH, BLOCK_WIDTH);
+    //}
   }
   
   void fall() {
-    println(name + " falling one");
     updatePos(pos.x, pos.y + BLOCK_WIDTH);
   }
   
   void applyJet(String dir) {
-    println(name + " apply jet " + dir);
     if (dir.equals(">")) {
       updatePos(pos.x + BLOCK_WIDTH, pos.y);
     } else if (dir.equals("<")) {
@@ -82,8 +92,6 @@ class Rock {
       for (Block topBlock : other.topBlocks) {
         if (bottomBlock.pos.x == topBlock.pos.x
             && bottomBlock.pos.y >= topBlock.pos.y - BLOCK_WIDTH) {
-              println("hit: " + this.name + " at "  + this.pos + " lands on " + other.name + " at " + other.pos );
-              println("Blocks that hit: bot " + bottomBlock.pos + ", top: " + topBlock.pos);
           return true;
         }
       }
@@ -96,9 +104,8 @@ class Rock {
     for (Block rightBlock : this.rightBlocks) {
       for (Block leftBlock : other.leftBlocks) {
         if (rightBlock.pos.y == leftBlock.pos.y
-            && rightBlock.pos.x >= leftBlock.pos.x - BLOCK_WIDTH) {
-              println("hit: " + this.name + " at "  + this.pos + " collides right on " + other.name + " at " + other.pos );
-              println("Blocks that hit: right " + rightBlock.pos + ", left: " + leftBlock.pos);
+            && rightBlock.pos.x >= leftBlock.pos.x - BLOCK_WIDTH
+            && rightBlock.pos.x - leftBlock.pos.x < BLOCK_WIDTH - 5) {
           return true;
         }
       }
@@ -111,9 +118,8 @@ class Rock {
     for (Block leftBlock : this.leftBlocks) {
       for (Block rightBlock : other.rightBlocks) {
         if (leftBlock.pos.y == rightBlock.pos.y
-            && leftBlock.pos.x <= rightBlock.pos.x + BLOCK_WIDTH) {
-              println("hit: " + this.name + " at "  + this.pos + " collides left on " + other.name + " at " + other.pos );
-              println("Blocks that hit: left " + leftBlock.pos + ", right: " + rightBlock.pos);
+            && leftBlock.pos.x <= rightBlock.pos.x + BLOCK_WIDTH
+            && rightBlock.pos.x - leftBlock.pos.x < BLOCK_WIDTH - 5) {
           return true;
         }
       }
