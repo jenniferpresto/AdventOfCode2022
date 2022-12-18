@@ -91,7 +91,8 @@ class Rock {
     for (Block bottomBlock : this.bottomBlocks) {
       for (Block topBlock : other.topBlocks) {
         if (bottomBlock.pos.x == topBlock.pos.x
-            && bottomBlock.pos.y >= topBlock.pos.y - BLOCK_WIDTH) {
+            && bottomBlock.pos.y >= topBlock.pos.y - BLOCK_WIDTH
+            && bottomBlock.pos.y - topBlock.pos.y < BLOCK_WIDTH - 5) {
           return true;
         }
       }
@@ -128,7 +129,7 @@ class Rock {
   }
   
   boolean isOnFloor() {
-    return bottommostBlock.pos.y >= height - BLOCK_WIDTH;
+    return bottommostBlock.pos.y >= FLOOR_HEIGHT - BLOCK_WIDTH;
   }
   
   boolean isOnLeftWall() {
