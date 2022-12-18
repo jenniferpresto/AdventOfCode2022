@@ -33,9 +33,4 @@ class HorzLine extends Rock {
     bottomBlocks.add(blockList.get(3));
     rightBlocks.add(blockList.get(3));
   }
-  
-  void display() {
-    super.display();
-    
-  }
 }

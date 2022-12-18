@@ -37,10 +37,4 @@ class El extends Rock {
     bottomBlocks.add(blockList.get(3));
     bottomBlocks.add(blockList.get(4));
   }
-
-  
-  void display() {
-    super.display();
-    
-  }
 }

@@ -63,6 +63,7 @@ class Rock {
   
   void display() {
     //noStroke();
+    stroke(0);
     fill(col);
     for (Block block : blockList) {
       block.display();
@@ -101,7 +102,6 @@ class Rock {
   }
   
   boolean collidesOtherRockRight(Rock other) {
-    //println("Testing right: " + this.name + ", " + other.name);
     for (Block rightBlock : this.rightBlocks) {
       for (Block leftBlock : other.leftBlocks) {
         if (rightBlock.pos.y == leftBlock.pos.y
@@ -115,7 +115,6 @@ class Rock {
   }
   
   boolean collidesOtherRockLeft(Rock other) {
-    //println("Testing left: " + this.name + ", " + other.name);
     for (Block leftBlock : this.leftBlocks) {
       for (Block rightBlock : other.rightBlocks) {
         if (leftBlock.pos.y == rightBlock.pos.y

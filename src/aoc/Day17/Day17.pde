@@ -40,7 +40,7 @@ void setup() {
 void draw() {
   //if (topmostBlockInPile != null && topmostBlockInPile.pos.y > 0) {
     background(169, 10, 60);
-    drawGrid();
+    //drawGrid();
   //}
 
   //  determine if time for a new rock to fall
@@ -52,7 +52,7 @@ void draw() {
       println("Added rock # " + allRocks.size());
     }
     if (allRocks.size() == 2023) {
-      println("This is top of tower: " + allRocks.get(2021).topmostBlock.pos);
+      println("Part 2: This is top of tower: " + allRocks.get(2021).topmostBlock.pos);
     }
     nextRockType++;
     isFallCycle = false;
@@ -115,10 +115,8 @@ void fallCycle() {
 
 void windCycle() {
   String wind = data[0].substring(windIndex, windIndex + 1);
-  //println("Wind!: " + wind);
   windIndex++;
   if (windIndex > data[0].length() - 1) {
-    //println("Starting over with the wind");
     windIndex = 0;
     startedTestingCycles = true;
   }
@@ -185,8 +183,6 @@ void testColumnHeights() {
   
   for (int i = 0; i < allTopShapesSinceWindCycled.size(); i++) {
     if (allTopShapesSinceWindCycled.get(i).equals(testShape)) {
-      //println("We have a match!!  windCycle: " + windIndex + ": " + testShape);
-      //println("how big is cycle? " + allTopShapesSinceWindCycled.size() + ", we're at " + i);
       for (int j = 0; j < repeatingShapes.size(); j++) {
         if (repeatingShapes.get(j).equals(testShape)) {
           if (allRocks.get(allRocks.size() -1) != fallingRock) {
@@ -196,14 +192,13 @@ void testColumnHeights() {
           long thisRockNum = (long)allRocks.size();
           long numRocksToGo = 1000000000000L - thisRockNum;
           if (numRocksToGo % numRocksInRepeatingCycle == 0) {
-            println("we're whole cycles away from a trillion: " + allRocks.size());
-            println("height now is: " + fallingRock.topmostBlock.pos.y);
+            println("we're whole cycles away from a trillion with " + allRocks.size() + " rocks");
             long numCyclesToGetThere = numRocksToGo / numRocksInRepeatingCycle;
-            println("We have " + numCyclesToGetThere + " to go");
+            println("We have " + numCyclesToGetThere + " cycles to go");
             long lastMatchingCycle = thisRockNum - numRocksInRepeatingCycle;
             long heightRightNow = (long)fallingRock.topmostBlock.pos.y;
             long heightLastTimeWeWereHere = heightAfterEachRock.get(lastMatchingCycle);
-            println("Last time we were here: " + heightLastTimeWeWereHere + ", now it's " + heightRightNow);
+            println("Height last time we were here: " + heightLastTimeWeWereHere + ", now it's " + heightRightNow);
             long heightDifference = heightRightNow - heightLastTimeWeWereHere;
             println("Each cycle adds an additional " + heightDifference + " to the pile");
             long eventualAdditionalHeight = heightDifference * numCyclesToGetThere;
@@ -211,7 +206,7 @@ void testColumnHeights() {
             long consistentHeight = eventualAdditionalHeight + heightRightNow;
             println("So this number should be consistent: " + consistentHeight);
             consistentHeight -= FLOOR_HEIGHT;
-            println("******* Answer: " + (consistentHeight / BLOCK_WIDTH * -1) + " ************");
+            println("******* Part 2: " + (consistentHeight / BLOCK_WIDTH * -1) + " ************");
             heightAfterEachRock.put((long)allRocks.size(), (long)fallingRock.topmostBlock.pos.y);
           }
           return;
@@ -249,7 +244,6 @@ Rock getNewRock(int type, int topY) {
     newRock = new Square(0, 0);
   } else {
     println("Shouldn't happen");
-    newRock = null;
     return null;
   }
   int newX = newRock.getStartingXPos();

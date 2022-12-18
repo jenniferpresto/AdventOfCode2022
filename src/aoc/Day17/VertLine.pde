@@ -32,10 +32,4 @@ class VertLine extends Rock {
     leftBlocks.add(blockList.get(3));
     bottomBlocks.add(blockList.get(3));
   }
-  
-
-  void display() {
-    super.display();
-    
-  }
 }
