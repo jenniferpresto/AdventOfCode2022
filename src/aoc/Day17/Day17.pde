@@ -67,8 +67,22 @@ void fallCycle() {
 }
 
 void windCycle() {
+  if (fallingRock.isOnFloor()) {
+    fallingRock.isFalling = false;
+    fallingRock = null;
+    return;
+  }
+  for (Rock otherRock : allRocks) {
+    if (otherRock == fallingRock) {
+      continue;
+    }
+    if (fallingRock.collidesOtherRockDown(otherRock)) {
+      fallingRock.isFalling = false;
+      fallingRock = null;
+      return;
+    }
+  }
   String wind = data[0].substring(windIndex, windIndex + 1);
-  println(wind);
   windIndex++;
   if (windIndex > data[0].length() - 1) {
     windIndex = 0;

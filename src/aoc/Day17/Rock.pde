@@ -62,23 +62,28 @@ class Rock {
   }
   
   void fall() {
-    
+    println(name + " falling one");
     updatePos(pos.x, pos.y + BLOCK_WIDTH);
   }
   
   void applyJet(String dir) {
+    println(name + " apply jet " + dir);
     if (dir.equals(">")) {
-      pos.x += BLOCK_WIDTH;
+      updatePos(pos.x + BLOCK_WIDTH, pos.y);
     } else if (dir.equals("<")) {
-      pos.x -= BLOCK_WIDTH;
+      updatePos(pos.x -= BLOCK_WIDTH, pos.y);
     }
   }
   
   boolean collidesOtherRockDown(Rock other) {
+    //println("Testing down: " + this.name + ", " + other.name);
+    
     for (Block bottomBlock : this.bottomBlocks) {
       for (Block topBlock : other.topBlocks) {
         if (bottomBlock.pos.x == topBlock.pos.x
             && bottomBlock.pos.y >= topBlock.pos.y - BLOCK_WIDTH) {
+              println("hit: " + this.name + " at "  + this.pos + " lands on " + other.name + " at " + other.pos );
+              println("Blocks that hit: bot " + bottomBlock.pos + ", top: " + topBlock.pos);
           return true;
         }
       }
@@ -87,10 +92,13 @@ class Rock {
   }
   
   boolean collidesOtherRockRight(Rock other) {
+    //println("Testing right: " + this.name + ", " + other.name);
     for (Block rightBlock : this.rightBlocks) {
       for (Block leftBlock : other.leftBlocks) {
         if (rightBlock.pos.y == leftBlock.pos.y
             && rightBlock.pos.x >= leftBlock.pos.x - BLOCK_WIDTH) {
+              println("hit: " + this.name + " at "  + this.pos + " collides right on " + other.name + " at " + other.pos );
+              println("Blocks that hit: right " + rightBlock.pos + ", left: " + leftBlock.pos);
           return true;
         }
       }
@@ -99,10 +107,13 @@ class Rock {
   }
   
   boolean collidesOtherRockLeft(Rock other) {
-    for (Block rightBlock : this.rightBlocks) {
-      for (Block leftBlock : other.leftBlocks) {
-        if (rightBlock.pos.y == leftBlock.pos.y
-            && rightBlock.pos.x >= leftBlock.pos.x - BLOCK_WIDTH) {
+    //println("Testing left: " + this.name + ", " + other.name);
+    for (Block leftBlock : this.leftBlocks) {
+      for (Block rightBlock : other.rightBlocks) {
+        if (leftBlock.pos.y == rightBlock.pos.y
+            && leftBlock.pos.x <= rightBlock.pos.x + BLOCK_WIDTH) {
+              println("hit: " + this.name + " at "  + this.pos + " collides left on " + other.name + " at " + other.pos );
+              println("Blocks that hit: left " + leftBlock.pos + ", right: " + rightBlock.pos);
           return true;
         }
       }
