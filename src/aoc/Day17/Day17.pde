@@ -1,6 +1,5 @@
 static final int BLOCK_WIDTH = 10;
 static final int FLOOR_HEIGHT = 750;
-static final int TUNNEL_WIDTH = BLOCK_WIDTH * 7;
 String[] data;
 
 ArrayList<Rock> allRocks;
@@ -24,7 +23,7 @@ void setup() {
   data = loadStrings("../../../data/Day17.txt");
   println(data[0].length());
   colorMode(HSB, 360, 100, 100);
-  size(70, 750);
+  size(70, 750); // width needs to be 7 * BLOCK_WIDTH
   rectMode(CORNER);
   
   allRocks = new ArrayList<>();
@@ -52,7 +51,7 @@ void draw() {
       println("Added rock # " + allRocks.size());
     }
     if (allRocks.size() == 2023) {
-      println("Part 2: This is top of tower: " + allRocks.get(2021).topmostBlock.pos);
+      println("Part 2: This is top of tower: " + (allRocks.get(2021).topmostBlock.pos + FLOOR_HEIGHT));
     }
     nextRockType++;
     isFallCycle = false;

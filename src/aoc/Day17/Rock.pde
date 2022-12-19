@@ -93,7 +93,7 @@ class Rock {
       for (Block topBlock : other.topBlocks) {
         if (bottomBlock.pos.x == topBlock.pos.x
             && bottomBlock.pos.y >= topBlock.pos.y - BLOCK_WIDTH
-            && bottomBlock.pos.y - topBlock.pos.y < BLOCK_WIDTH - 5) {
+            && bottomBlock.pos.y - topBlock.pos.y < BLOCK_WIDTH - 1) {
           return true;
         }
       }
@@ -106,7 +106,7 @@ class Rock {
       for (Block leftBlock : other.leftBlocks) {
         if (rightBlock.pos.y == leftBlock.pos.y
             && rightBlock.pos.x >= leftBlock.pos.x - BLOCK_WIDTH
-            && rightBlock.pos.x - leftBlock.pos.x < BLOCK_WIDTH - 5) {
+            && rightBlock.pos.x - leftBlock.pos.x < BLOCK_WIDTH - 1) {
           return true;
         }
       }
@@ -119,7 +119,7 @@ class Rock {
       for (Block rightBlock : other.rightBlocks) {
         if (leftBlock.pos.y == rightBlock.pos.y
             && leftBlock.pos.x <= rightBlock.pos.x + BLOCK_WIDTH
-            && rightBlock.pos.x - leftBlock.pos.x < BLOCK_WIDTH - 5) {
+            && rightBlock.pos.x - leftBlock.pos.x < BLOCK_WIDTH - 1) {
           return true;
         }
       }
