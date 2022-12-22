@@ -46,23 +46,9 @@ public class Day20 {
             originalOrderList.add(new Element(i, Integer.valueOf(data.get(i))));
         }
         List<Element> mixedList = new ArrayList<>(originalOrderList);
+        mixList(originalOrderList, mixedList);
 
-        for (Element element : originalOrderList) {
-            int currentIndex = mixedList.indexOf(element);
-            mixedList.remove(element);
-            long newIndex = (currentIndex + element.value);
-            if (newIndex < 0) {
-                while(newIndex < 0) {
-                    newIndex += mixedList.size();
-                }
-                System.out.println("Current index: " + currentIndex + ", new: " + newIndex);
-            } else {
-                newIndex %= mixedList.size();
-            }
-            mixedList.add((int)newIndex, element);
-        }
-
-//          get index of 0
+        //  get index of 0
         int startIdx = 0;
         for (int i = 0; i < mixedList.size(); i++) {
             if (mixedList.get(i).value == 0) {
@@ -83,18 +69,7 @@ public class Day20 {
             element.value *= DECRYPTION_KEY; // note, this changes values of elements in all arrays
         }
         for (int i = 0; i < 10; i++) {
-            for (Element element : originalOrderList) {
-                int currentIndex = mixedListWithKey.indexOf(element);
-
-                mixedListWithKey.remove(element);
-                long newIndex = (currentIndex + element.value);
-                if (newIndex < 0) {
-                    newIndex = (newIndex % mixedListWithKey.size()) + mixedListWithKey.size();
-                } else {
-                    newIndex %= mixedListWithKey.size();
-                }
-                mixedListWithKey.add((int)newIndex, element);
-            }
+            mixList(originalOrderList, mixedListWithKey);
         }
 
         //  get index of 0
@@ -111,5 +86,19 @@ public class Day20 {
         long threeThousand2 = mixedListWithKey.get((startIdx2 + 3000) % mixedListWithKey.size()).value;
         long sum2 = oneThousand2 + twoThousand2 + threeThousand2;
         System.out.println("Part 2: Sum is " + sum2);
+    }
+
+    private static void mixList(List<Element> originalList, List<Element> mixedList) {
+        for (Element element : originalList) {
+            int currentIndex = mixedList.indexOf(element);
+            mixedList.remove(element);
+            long newIndex = (currentIndex + element.value);
+            if (newIndex < 0) {
+                newIndex = (newIndex % mixedList.size()) + mixedList.size();
+            } else {
+                newIndex %= mixedList.size();
+            }
+            mixedList.add((int)newIndex, element);
+        }
     }
 }
