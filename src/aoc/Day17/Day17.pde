@@ -51,7 +51,7 @@ void draw() {
       println("Added rock # " + allRocks.size());
     }
     if (allRocks.size() == 2023) {
-      println("Part 2: This is top of tower: " + (allRocks.get(2021).topmostBlock.pos + FLOOR_HEIGHT));
+      println("Part 1: This is top of tower: " + (FLOOR_HEIGHT - allRocks.get(2021).topmostBlock.pos));
     }
     nextRockType++;
     isFallCycle = false;
