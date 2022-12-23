@@ -52,10 +52,12 @@ public class Day21 {
         Long value = null;
         final public MonkeyOperation operation;
         boolean isDone;
-        Long val1 = null;
-        Long val2 = null;
+//        Long val1 = null;
+//        Long val2 = null;
         final String monkey1Name;
         final String monkey2Name;
+
+        long desiredMonkeyValue;
 
         Monkey monkey1 = null;
         Monkey monkey2 = null;
@@ -77,12 +79,70 @@ public class Day21 {
             this.isDone = false;
         }
 
-        public long getMonkeyValue() {
-            if (name.equals("humn")) {
-                System.out.println("Human!");
+        public boolean includesHumanInValue() {
+            if (value == null) {
+                return monkey1.includesHumanInValue() || monkey2.includesHumanInValue();
+            } else {
+                return name.equals("humn");
             }
+        }
+
+        public long getMonkeyValue() {
             if (value != null) { return value; }
             return(operation.operate(monkey1.getMonkeyValue(), monkey2.getMonkeyValue()));
+        }
+
+        public void setDesiredValues(long desiredValue) {
+            if (!includesHumanInValue()) {
+                System.out.println("Something has gone wrong with setting values");
+                desiredValue = getMonkeyValue();
+                return;
+            }
+
+            if (value != null && name.equals("humn")) {
+                this.desiredMonkeyValue = desiredValue;
+                return;
+            }
+
+            if (value != null && !name.equals("humn")) {
+                System.out.println("We've done something wrong");
+                return;
+            }
+            if (monkey1 == null || monkey2 == null) {
+                System.out.println("Something wrong again");
+                return;
+            }
+
+            if (monkey1.includesHumanInValue() && monkey2.includesHumanInValue()) {
+                System.out.println("This is more complicated than expected");
+                return;
+            }
+
+            if (monkey1.includesHumanInValue()) {
+                if (operation.getClass() == MonkeyAdd.class) {
+                    monkey1.setDesiredValues(desiredValue - monkey2.getMonkeyValue());
+                } else if (operation.getClass() == MonkeySubtract.class) {
+                    monkey1.setDesiredValues(desiredValue + monkey2.getMonkeyValue());
+                } else if (operation.getClass() == MonkeyMultiply.class) {
+                    monkey1.setDesiredValues(desiredValue / monkey2.getMonkeyValue());
+                } else if (operation.getClass() == MonkeyDivide.class) {
+                    monkey1.setDesiredValues(desiredValue * monkey2.getMonkeyValue());
+                } else {
+                    System.out.println("oops");
+                }
+            } else {
+                if (operation.getClass() == MonkeyAdd.class) {
+                    monkey2.setDesiredValues(desiredValue - monkey1.getMonkeyValue());
+                } else if (operation.getClass() == MonkeySubtract.class) {
+                    monkey2.setDesiredValues(monkey1.getMonkeyValue() - desiredValue);
+                } else if (operation.getClass() == MonkeyMultiply.class) {
+                    monkey2.setDesiredValues(desiredValue / monkey1.getMonkeyValue());
+                } else if (operation.getClass() == MonkeyDivide.class) {
+                    monkey2.setDesiredValues(desiredValue / monkey1.getMonkeyValue());
+                } else {
+                    System.out.println("oops");
+                }
+            }
         }
 
         @Override
@@ -110,7 +170,7 @@ public class Day21 {
 
     public static void main(String[] args) {
         List<String> data = new ArrayList<>();
-        try (final Scanner scanner = new Scanner(new File("testData/Day21.txt"))) {
+        try (final Scanner scanner = new Scanner(new File("data/Day21.txt"))) {
             while (scanner.hasNext()) {
                 data.add(scanner.nextLine());
             }
@@ -210,8 +270,21 @@ public class Day21 {
 //        System.out.println("Root value: " + rootValue);
 
         Monkey rootMonkey = part2MonkeyMap.get("root");
-        System.out.println("Monkey 1: " + rootMonkey.monkey1.getMonkeyValue());
-        System.out.println("Monkey 2: " + rootMonkey.monkey2.getMonkeyValue());
+//        System.out.println("Monkey 1: " + rootMonkey.monkey1.getMonkeyValue());
+//        System.out.println("Monkey 2: " + rootMonkey.monkey2.getMonkeyValue());
+//
+//        System.out.println("Monkey 1 contains human? " + rootMonkey.monkey1.includesHumanInValue());
+//        System.out.println("Monkey 2 contains human? " + rootMonkey.monkey2.includesHumanInValue());
+
+        if (rootMonkey.monkey1.includesHumanInValue()) {
+            rootMonkey.monkey1.setDesiredValues(rootMonkey.monkey2.getMonkeyValue());
+        } else {
+            rootMonkey.monkey2.setDesiredValues(rootMonkey.monkey1.getMonkeyValue());
+        }
+        int jennifer =  9;
+        Monkey me = part2MonkeyMap.get("humn");
+
+        System.out.println("Part 2: Desired value for human: " + me.desiredMonkeyValue);
 
     }
 
