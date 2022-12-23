@@ -54,24 +54,35 @@ public class Day21 {
         boolean isDone;
         Long val1 = null;
         Long val2 = null;
-        final String monkey1;
-        final String monkey2;
+        final String monkey1Name;
+        final String monkey2Name;
+
+        Monkey monkey1 = null;
+        Monkey monkey2 = null;
 
         Monkey(String name, Long value) {
             this.name = name;
             this.value = value;
             this.operation = null;
             this.isDone = true;
-            this.monkey1 = null;
-            this.monkey2 = null;
+            this.monkey1Name = null;
+            this.monkey2Name = null;
         }
 
         Monkey(String name, MonkeyOperation operation, String monkey1, String monkey2) {
             this.name = name;
             this.operation = operation;
-            this.monkey1 = monkey1;
-            this.monkey2 = monkey2;
+            this.monkey1Name = monkey1;
+            this.monkey2Name = monkey2;
             this.isDone = false;
+        }
+
+        public long getMonkeyValue() {
+            if (name.equals("humn")) {
+                System.out.println("Human!");
+            }
+            if (value != null) { return value; }
+            return(operation.operate(monkey1.getMonkeyValue(), monkey2.getMonkeyValue()));
         }
 
         @Override
@@ -99,7 +110,7 @@ public class Day21 {
 
     public static void main(String[] args) {
         List<String> data = new ArrayList<>();
-        try (final Scanner scanner = new Scanner(new File("data/Day21.txt"))) {
+        try (final Scanner scanner = new Scanner(new File("testData/Day21.txt"))) {
             while (scanner.hasNext()) {
                 data.add(scanner.nextLine());
             }
@@ -108,17 +119,110 @@ public class Day21 {
             return;
         }
 
-        List<Monkey> barrelOfMonkeys = new ArrayList<>();
-        Map<String, Monkey> finishedMonkeys = new HashMap<>();
-        Map<String, Monkey> unfinishedMonkeys = new HashMap<>();
+//        List<Monkey> barrelOfMonkeysPart1 = new ArrayList<>();
+//        Map<String, Monkey> finishedMonkeys = new HashMap<>();
+//        Map<String, Monkey> unfinishedMonkeys = new HashMap<>();
+//
+//        for (String line : data) {
+//            String monkeyName = line.substring(0, 4);
+//            String[] monkeyJob = line.substring(6).split(" ");
+//            Monkey newMonkey;
+//            if (monkeyJob.length == 1) {
+//                newMonkey = new Monkey(monkeyName, Long.valueOf(monkeyJob[0]));
+//                finishedMonkeys.put(monkeyName, newMonkey);
+//            } else {
+//                MonkeyOperation operation;
+//                switch(monkeyJob[1]) {
+//                    case "+":
+//                        operation = ADDER;
+//                        break;
+//                    case "-":
+//                        operation = SUBTRACTOR;
+//                        break;
+//                    case "*":
+//                        operation = MULTIPLIER;
+//                        break;
+//                    case "/":
+//                        operation = DIVIDER;
+//                        break;
+//                    default:
+//                        operation = ADDER;
+//                        System.out.println("Something's not right");
+//                }
+//                newMonkey = new Monkey(monkeyName, operation, monkeyJob[0], monkeyJob[2]);
+//                unfinishedMonkeys.put(monkeyName, newMonkey);
+//            }
+//            barrelOfMonkeysPart1.add(newMonkey);
+//        }
+//
+//        boolean stillLooking = true;
+//        while(stillLooking) {
+//            List<Monkey> monkeysToRemove = new ArrayList<>();
+//            for (Map.Entry<String, Monkey> monkeySet : unfinishedMonkeys.entrySet()) {
+//                Monkey monkeyToTest = monkeySet.getValue();
+//                if (monkeyToTest.val1 == null) {
+//                    if (finishedMonkeys.containsKey(monkeyToTest.monkey1Name)) {
+//                        monkeyToTest.val1 = finishedMonkeys.get(monkeyToTest.monkey1Name).value;
+//                    }
+//                }
+//
+//                if (monkeyToTest.val2 == null) {
+//                    if (finishedMonkeys.containsKey(monkeySet.getValue().monkey2Name)) {
+//                        monkeyToTest.val2 = finishedMonkeys.get(monkeyToTest.monkey2Name).value;
+//                    }
+//                }
+//
+//                if (monkeyToTest.val1 != null && monkeyToTest.val2 != null) {
+//                    monkeyToTest.value = monkeyToTest.operation.operate(monkeyToTest.val1, monkeyToTest.val2);
+//                    finishedMonkeys.put(monkeyToTest.name, monkeyToTest);
+//                    monkeysToRemove.add(monkeyToTest);
+//                }
+//            }
+//
+//            for (Monkey monkeyToRemove : monkeysToRemove) {
+//                unfinishedMonkeys.remove(monkeyToRemove.name);
+//            }
+//            if (finishedMonkeys.containsKey("root")) {
+//                stillLooking = false;
+//            }
+//        }
+//        Monkey part1Monkey = finishedMonkeys.get("root");
+//        System.out.println("Part 1: " + part1Monkey.value);
 
+        //  Part 2
+        //  Get a fresh list of monkeys
+        List<Monkey> barrelOfMonkeysPart2 = getMonkeysFromData(data);
+        Map<String, Monkey> part2MonkeyMap = new HashMap<>();
+        for (Monkey monkey : barrelOfMonkeysPart2) {
+            part2MonkeyMap.put(monkey.name, monkey);
+        }
+
+        for (Monkey monkey : barrelOfMonkeysPart2) {
+            if (monkey.monkey1Name != null) {
+                monkey.monkey1 = part2MonkeyMap.get(monkey.monkey1Name);
+            }
+            if (monkey.monkey2Name != null) {
+                monkey.monkey2 = part2MonkeyMap.get(monkey.monkey2Name);
+            }
+        }
+//        long rootValue = part2MonkeyMap.get("root").getMonkeyValue();
+        //  oh, this is a lot better for part 1
+//        System.out.println("Root value: " + rootValue);
+
+        Monkey rootMonkey = part2MonkeyMap.get("root");
+        System.out.println("Monkey 1: " + rootMonkey.monkey1.getMonkeyValue());
+        System.out.println("Monkey 2: " + rootMonkey.monkey2.getMonkeyValue());
+
+    }
+
+    private static List<Monkey> getMonkeysFromData(List<String> data) {
+        List<Monkey> barrelOfMonkeys = new ArrayList<>();
         for (String line : data) {
             String monkeyName = line.substring(0, 4);
             String[] monkeyJob = line.substring(6).split(" ");
             Monkey newMonkey;
             if (monkeyJob.length == 1) {
                 newMonkey = new Monkey(monkeyName, Long.valueOf(monkeyJob[0]));
-                finishedMonkeys.put(monkeyName, newMonkey);
             } else {
                 MonkeyOperation operation;
                 switch(monkeyJob[1]) {
@@ -139,44 +243,9 @@ public class Day21 {
                         System.out.println("Something's not right");
                 }
                 newMonkey = new Monkey(monkeyName, operation, monkeyJob[0], monkeyJob[2]);
-                unfinishedMonkeys.put(monkeyName, newMonkey);
             }
             barrelOfMonkeys.add(newMonkey);
         }
-
-        boolean stillLooking = true;
-        while(stillLooking) {
-            List<Monkey> monkeysToRemove = new ArrayList<>();
-            for (Map.Entry<String, Monkey> monkeySet : unfinishedMonkeys.entrySet()) {
-                Monkey monkeyToTest = monkeySet.getValue();
-                if (monkeyToTest.val1 == null) {
-                    if (finishedMonkeys.containsKey(monkeyToTest.monkey1)) {
-                        monkeyToTest.val1 = finishedMonkeys.get(monkeyToTest.monkey1).value;
-                    }
-                }
-
-                if (monkeyToTest.val2 == null) {
-                    if (finishedMonkeys.containsKey(monkeySet.getValue().monkey2)) {
-                        monkeyToTest.val2 = finishedMonkeys.get(monkeyToTest.monkey2).value;
-                    }
-                }
-
-                if (monkeyToTest.val1 != null && monkeyToTest.val2 != null) {
-                    monkeyToTest.value = monkeyToTest.operation.operate(monkeyToTest.val1, monkeyToTest.val2);
-                    finishedMonkeys.put(monkeyToTest.name, monkeyToTest);
-                    monkeysToRemove.add(monkeyToTest);
-                }
-            }
-
-            for (Monkey monkeyToRemove : monkeysToRemove) {
-                unfinishedMonkeys.remove(monkeyToRemove.name);
-            }
-            if (finishedMonkeys.containsKey("root")) {
-                stillLooking = false;
-            }
-        }
-        Monkey part1Monkey = finishedMonkeys.get("root");
-        System.out.println("Part 1: " + part1Monkey.value);
-        int jennifer = 9;
+        return barrelOfMonkeys;
     }
 }
