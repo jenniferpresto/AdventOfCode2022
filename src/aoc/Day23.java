@@ -12,6 +12,11 @@ import java.util.Scanner;
 import java.util.Set;
 
 public class Day23 {
+    public static int TOP_LEFT_X = Integer.MAX_VALUE;
+    public static int TOP_LEFT_Y = Integer.MAX_VALUE;
+    public static int BOTTOM_RIGHT_X = Integer.MIN_VALUE;
+    public static int BOTTOM_RIGHT_Y = Integer.MIN_VALUE;
+
     private static class Loc {
         int x;
         int y;
@@ -51,6 +56,7 @@ public class Day23 {
     }
 
     private static class Elf {
+        int id = 0;
         Loc currentLoc;
         Loc proposedLoc;
         boolean isProposalSuccessful = true;
@@ -77,7 +83,7 @@ public class Day23 {
 
     public static void main(String[] args) {
         List<String> data = new ArrayList<>();
-        try (final Scanner scanner = new Scanner(new File("testData/Day23.txt"))) {
+        try (final Scanner scanner = new Scanner(new File("data/Day23.txt"))) {
             while (scanner.hasNext()) {
                 data.add(scanner.nextLine());
             }
@@ -89,22 +95,48 @@ public class Day23 {
         Map<Loc, Elf> regionMap = new HashMap<>();
         List<Elf> elves = new ArrayList<>();
 
+        int elfId = 0;
+
         for (int y = 0; y < data.size(); y++) {
             for (int x = 0; x < data.get(y).length(); x++) {
                 if(data.get(y).charAt(x) == '#') {
                     Loc loc = new Loc(x, y);
                     Elf elf = new Elf(loc);
+                    elf.id = elfId;
+                    elfId++;
                     regionMap.put(loc, elf);
                     elves.add(elf);
                 }
             }
         }
 
-        drawRegion(elves);
-        calculateProposedLocations(elves, 0);
-        moveElvesIfPossible(elves);
-        drawRegion(elves);
-        int jennifer = 9;
+//        drawRegion(elves);
+        int startingDir = 0;
+        for (int i = 0; i < 10; i++) {
+            calculateProposedLocations(elves, startingDir);
+            moveElvesIfPossible(elves);
+//            drawRegion(elves);
+            startingDir = (startingDir + 1) % 4;
+        }
+        calculateBoundaries(elves);
+        int numOccupiedLocs = 0;
+        int numEmptyLocs = 0;
+        Set<Loc> occupiedLocs = new HashSet<>();
+        for (Elf elf : elves) {
+            occupiedLocs.add(elf.currentLoc);
+        }
+        for (int y = TOP_LEFT_Y; y < BOTTOM_RIGHT_Y + 1; y++) {
+            for (int x = TOP_LEFT_X; x < BOTTOM_RIGHT_X + 1; x++) {
+                Loc testLoc = new Loc(x, y);
+                if (occupiedLocs.contains(testLoc)) {
+                    numOccupiedLocs++;
+                } else {
+                    numEmptyLocs++;
+                }
+            }
+        }
+        System.out.println("Num occupied locations: " + numOccupiedLocs);
+        System.out.println("Num empty spots: " + numEmptyLocs);
     }
 
     private static void calculateProposedLocations(List<Elf> elves, int proposedStartingDirection) {
@@ -122,8 +154,25 @@ public class Day23 {
         }
 
         for (Elf elf : elves) {
+            if (elf.id == 2) {
+                int jennifer = 9;
+            }
             List<Loc> adjacentElfLocs = elf.getAdjacentLocs();
-            for (int i = proposedStartingDirection; i < proposedStartingDirection + 4; i++) {
+            //  see if the elf has only empty spaces around
+            boolean noNeedToMove = true;
+            for (Loc loc : adjacentElfLocs) {
+                if (currentLocations.contains(loc)) {
+                    noNeedToMove = false;
+                    break;
+                }
+            }
+            if (noNeedToMove) {
+                elf.proposedLoc = elf.currentLoc;
+                elf.isProposalSuccessful = false;
+                continue;
+            }
+
+            for (int i = 0; i < 4; i++) {
                 int idx = (proposedStartingDirection + i) % 4;
                 //  check direction
                 List<Integer> locIndices = directions.get(idx);
@@ -137,9 +186,11 @@ public class Day23 {
                 //  the new direction is always the middle index in the set of three
                 if (directionIsClear) {
                     elf.proposedLoc = adjacentElfLocs.get(locIndices.get(1));
-                    System.out.println("Found a direction for the elf");
                     break;
                 }
+            }
+            if (elf.proposedLoc == null) {
+                elf.proposedLoc = elf.currentLoc;
             }
         }
     }
@@ -163,36 +214,39 @@ public class Day23 {
         }
     }
 
-    private static void drawRegion(List<Elf> elves) {
-        int topLeftX = Integer.MAX_VALUE;
-        int topLeftY = Integer.MAX_VALUE;
-        int bottomRightX = Integer.MIN_VALUE;
-        int bottomRightY = Integer.MIN_VALUE;
-
-        Set<Loc> currentElfLocations = new HashSet<>();
-
+    private static void calculateBoundaries(List<Elf> elves) {
         //  get boundaries
         for (Elf elf : elves) {
-            if (elf.currentLoc.x < topLeftX) {
-                topLeftX = elf.currentLoc.x;
+            if (elf.currentLoc.x < TOP_LEFT_X) {
+                TOP_LEFT_X = elf.currentLoc.x;
             }
-            if (elf.currentLoc.y < topLeftY) {
-                topLeftY = elf.currentLoc.y;
+            if (elf.currentLoc.y < TOP_LEFT_Y) {
+                TOP_LEFT_Y = elf.currentLoc.y;
             }
-            if (elf.currentLoc.x > bottomRightX) {
-                bottomRightX = elf.currentLoc.x;
+            if (elf.currentLoc.x > BOTTOM_RIGHT_X) {
+                BOTTOM_RIGHT_X = elf.currentLoc.x;
             }
-            if (elf.currentLoc.y > bottomRightY) {
-                bottomRightY = elf.currentLoc.y;
+            if (elf.currentLoc.y > BOTTOM_RIGHT_Y) {
+                BOTTOM_RIGHT_Y = elf.currentLoc.y;
             }
+        }
+
+    }
+    private static void drawRegion(List<Elf> elves) {
+        Map<Loc, Integer> elvestByLocation = new HashMap<>();
+        Set<Loc> currentElfLocations = new HashSet<>();
+        calculateBoundaries(elves);
+        for (Elf elf : elves) {
             currentElfLocations.add(elf.currentLoc);
+            elvestByLocation.put(elf.currentLoc, elf.id);
         }
 
         System.out.println("*******************");
-        for (int y = topLeftY; y < bottomRightY + 1; y++) {
-            for (int x = topLeftX; x < bottomRightX + 1; x++) {
+        for (int y = TOP_LEFT_Y; y < BOTTOM_RIGHT_Y + 1; y++) {
+            for (int x = TOP_LEFT_X; x < BOTTOM_RIGHT_X + 1; x++) {
                 Loc test = new Loc(x, y);
                 if (currentElfLocations.contains(test)) {
+//                    System.out.print(elvestByLocation.get(test));
                     System.out.print("#");
                 }
                 else {
