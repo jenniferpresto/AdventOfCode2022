@@ -82,7 +82,6 @@ public class Day23 {
             return;
         }
 
-        Map<Loc, Elf> regionMap = new HashMap<>();
         List<Elf> elves = new ArrayList<>();
 
         for (int y = 0; y < data.size(); y++) {
@@ -90,7 +89,6 @@ public class Day23 {
                 if(data.get(y).charAt(x) == '#') {
                     Loc loc = new Loc(x, y);
                     Elf elf = new Elf(loc);
-                    regionMap.put(loc, elf);
                     elves.add(elf);
                 }
             }
