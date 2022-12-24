@@ -135,8 +135,16 @@ public class Day23 {
                 }
             }
         }
-        System.out.println("Num occupied locations: " + numOccupiedLocs);
-        System.out.println("Num empty spots: " + numEmptyLocs);
+        System.out.println("Part 1: Num empty spots: " + numEmptyLocs);
+        int numRounds = 10; // note, part 2 will be wrong if the elves are already there
+        boolean haveMoved = true;
+        while(haveMoved) {
+            calculateProposedLocations(elves, startingDir);
+            haveMoved = moveElvesIfPossible(elves);
+            startingDir = (startingDir + 1) % 4;
+            numRounds++;
+        }
+        System.out.println("Part 2: Finished on round: " + numRounds);
     }
 
     private static void calculateProposedLocations(List<Elf> elves, int proposedStartingDirection) {
@@ -195,7 +203,8 @@ public class Day23 {
         }
     }
 
-    private static void moveElvesIfPossible(List<Elf> elves) {
+    private static boolean moveElvesIfPossible(List<Elf> elves) {
+        boolean elvesDidMove = false;
         //  compare all elves against each other
         //  if their proposed locations match, they can't move
         for (int i = 0; i < elves.size(); i++) {
@@ -210,8 +219,10 @@ public class Day23 {
         for (Elf elf : elves) {
             if (elf.isProposalSuccessful) {
                 elf.currentLoc = elf.proposedLoc;
+                elvesDidMove = true;
             }
         }
+        return elvesDidMove;
     }
 
     private static void calculateBoundaries(List<Elf> elves) {
