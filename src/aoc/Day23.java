@@ -3,6 +3,7 @@ package aoc;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -16,6 +17,13 @@ public class Day23 {
     public static int TOP_LEFT_Y = Integer.MAX_VALUE;
     public static int BOTTOM_RIGHT_X = Integer.MIN_VALUE;
     public static int BOTTOM_RIGHT_Y = Integer.MIN_VALUE;
+
+    public static List<Integer> north = new ArrayList<>(Arrays.asList(0, 1, 2));
+    public static List<Integer> south = new ArrayList<>(Arrays.asList(4, 5, 6));
+    public static List<Integer> west = new ArrayList<>(Arrays.asList(2, 3, 4));
+    public static List<Integer> east = new ArrayList<>(Arrays.asList(6, 7, 0));
+    public static List<List<Integer>> DIRECTIONS = new ArrayList<>(Arrays.asList(north, south, west, east));
+
 
     private static class Loc {
         int x;
@@ -36,8 +44,7 @@ public class Day23 {
             if (this == o) return true;
             if (o == null || o.getClass() != getClass()) return false;
             Loc other = (Loc)o;
-            if (this.x == other.x && this.y == other.y) return true;
-            return false;
+            return this.x == other.x && this.y == other.y;
         }
 
         @Override
@@ -72,6 +79,7 @@ public class Day23 {
     }
 
     public static void main(String[] args) {
+        Date start = new Date();
         List<String> data = new ArrayList<>();
         try (final Scanner scanner = new Scanner(new File("data/Day23.txt"))) {
             while (scanner.hasNext()) {
@@ -124,15 +132,12 @@ public class Day23 {
             numRounds++;
         }
         System.out.println("Part 2: Finished on round: " + numRounds);
+        Date end = new Date();
+        System.out.println("Elapsed time = " + (end.getTime() - start.getTime()));
     }
 
     private static void calculateProposedLocations(List<Elf> elves, int proposedStartingDirection) {
         Set<Loc> currentLocations = new HashSet<>();
-        List<Integer> north = new ArrayList<>(Arrays.asList(0, 1, 2));
-        List<Integer> south = new ArrayList<>(Arrays.asList(4, 5, 6));
-        List<Integer> west = new ArrayList<>(Arrays.asList(2, 3, 4));
-        List<Integer> east = new ArrayList<>(Arrays.asList(6, 7, 0));
-        List<List<Integer>> directions = new ArrayList<>(Arrays.asList(north, south, west, east));
 
         for (Elf elf : elves) {
             currentLocations.add(elf.currentLoc);
@@ -160,7 +165,7 @@ public class Day23 {
             for (int i = 0; i < 4; i++) {
                 int idx = (proposedStartingDirection + i) % 4;
                 //  check direction
-                List<Integer> locIndices = directions.get(idx);
+                List<Integer> locIndices = DIRECTIONS.get(idx);
                 boolean directionIsClear = true;
                 for (int j = 0; j < locIndices.size(); j++) {
                     if(currentLocations.contains(adjacentElfLocs.get(locIndices.get(j)))) {
