@@ -162,9 +162,6 @@ public class Day23 {
         }
 
         for (Elf elf : elves) {
-            if (elf.id == 2) {
-                int jennifer = 9;
-            }
             List<Loc> adjacentElfLocs = elf.getAdjacentLocs();
             //  see if the elf has only empty spaces around
             boolean noNeedToMove = true;
@@ -205,18 +202,20 @@ public class Day23 {
 
     private static boolean moveElvesIfPossible(List<Elf> elves) {
         boolean elvesDidMove = false;
-        //  compare all elves against each other
-        //  if their proposed locations match, they can't move
-        for (int i = 0; i < elves.size(); i++) {
-            for (int j = i+1; j < elves.size(); j++) {
-                if (elves.get(i).proposedLoc.equals(elves.get(j).proposedLoc)) {
-                    elves.get(i).isProposalSuccessful = false;
-                    elves.get(j).isProposalSuccessful = false;
-                }
+        Set<Loc> proposedLocations = new HashSet<>();
+        Set<Loc> collidingLocations = new HashSet<>();
+        for (Elf elf : elves) {
+            if (proposedLocations.contains(elf.proposedLoc)) {
+                collidingLocations.add(elf.proposedLoc);
+            } else {
+                proposedLocations.add(elf.proposedLoc);
             }
         }
 
         for (Elf elf : elves) {
+            if (collidingLocations.contains(elf.proposedLoc)) {
+                elf.isProposalSuccessful = false;
+            }
             if (elf.isProposalSuccessful) {
                 elf.currentLoc = elf.proposedLoc;
                 elvesDidMove = true;
@@ -241,8 +240,8 @@ public class Day23 {
                 BOTTOM_RIGHT_Y = elf.currentLoc.y;
             }
         }
-
     }
+
     private static void drawRegion(List<Elf> elves) {
         Map<Loc, Integer> elvestByLocation = new HashMap<>();
         Set<Loc> currentElfLocations = new HashSet<>();
