@@ -21,15 +21,6 @@ public class Day23 {
         int x;
         int y;
 
-        Loc() {
-            this.x = 0;
-            this.y = 0;
-        }
-        Loc(int x, int y, String contents) {
-            this.x = x;
-            this.y = y;
-        }
-
         Loc(int x, int y) {
             this.x = x;
             this.y = y;
@@ -56,10 +47,9 @@ public class Day23 {
     }
 
     private static class Elf {
-        int id = 0;
         Loc currentLoc;
         Loc proposedLoc;
-        boolean isProposalSuccessful = true;
+        boolean willMove = true;
 
         Elf(Loc loc) {
             this.currentLoc = loc;
@@ -95,31 +85,24 @@ public class Day23 {
         Map<Loc, Elf> regionMap = new HashMap<>();
         List<Elf> elves = new ArrayList<>();
 
-        int elfId = 0;
-
         for (int y = 0; y < data.size(); y++) {
             for (int x = 0; x < data.get(y).length(); x++) {
                 if(data.get(y).charAt(x) == '#') {
                     Loc loc = new Loc(x, y);
                     Elf elf = new Elf(loc);
-                    elf.id = elfId;
-                    elfId++;
                     regionMap.put(loc, elf);
                     elves.add(elf);
                 }
             }
         }
 
-//        drawRegion(elves);
         int startingDir = 0;
         for (int i = 0; i < 10; i++) {
             calculateProposedLocations(elves, startingDir);
             moveElvesIfPossible(elves);
-//            drawRegion(elves);
             startingDir = (startingDir + 1) % 4;
         }
         calculateBoundaries(elves);
-        int numOccupiedLocs = 0;
         int numEmptyLocs = 0;
         Set<Loc> occupiedLocs = new HashSet<>();
         for (Elf elf : elves) {
@@ -128,15 +111,13 @@ public class Day23 {
         for (int y = TOP_LEFT_Y; y < BOTTOM_RIGHT_Y + 1; y++) {
             for (int x = TOP_LEFT_X; x < BOTTOM_RIGHT_X + 1; x++) {
                 Loc testLoc = new Loc(x, y);
-                if (occupiedLocs.contains(testLoc)) {
-                    numOccupiedLocs++;
-                } else {
+                if (!occupiedLocs.contains(testLoc)) {
                     numEmptyLocs++;
                 }
             }
         }
         System.out.println("Part 1: Num empty spots: " + numEmptyLocs);
-        int numRounds = 10; // note, part 2 will be wrong if the elves are already there
+        int numRounds = 10; // note, assumes will take at least 10 rounds
         boolean haveMoved = true;
         while(haveMoved) {
             calculateProposedLocations(elves, startingDir);
@@ -157,7 +138,7 @@ public class Day23 {
 
         for (Elf elf : elves) {
             currentLocations.add(elf.currentLoc);
-            elf.isProposalSuccessful = true;
+            elf.willMove = true;
             elf.proposedLoc = null;
         }
 
@@ -171,9 +152,10 @@ public class Day23 {
                     break;
                 }
             }
+
             if (noNeedToMove) {
                 elf.proposedLoc = elf.currentLoc;
-                elf.isProposalSuccessful = false;
+                elf.willMove = false;
                 continue;
             }
 
@@ -194,6 +176,7 @@ public class Day23 {
                     break;
                 }
             }
+
             if (elf.proposedLoc == null) {
                 elf.proposedLoc = elf.currentLoc;
             }
@@ -214,9 +197,10 @@ public class Day23 {
 
         for (Elf elf : elves) {
             if (collidingLocations.contains(elf.proposedLoc)) {
-                elf.isProposalSuccessful = false;
+                elf.willMove = false;
             }
-            if (elf.isProposalSuccessful) {
+
+            if (elf.willMove) {
                 elf.currentLoc = elf.proposedLoc;
                 elvesDidMove = true;
             }
@@ -243,12 +227,10 @@ public class Day23 {
     }
 
     private static void drawRegion(List<Elf> elves) {
-        Map<Loc, Integer> elvestByLocation = new HashMap<>();
         Set<Loc> currentElfLocations = new HashSet<>();
         calculateBoundaries(elves);
         for (Elf elf : elves) {
             currentElfLocations.add(elf.currentLoc);
-            elvestByLocation.put(elf.currentLoc, elf.id);
         }
 
         System.out.println("*******************");
@@ -256,7 +238,6 @@ public class Day23 {
             for (int x = TOP_LEFT_X; x < BOTTOM_RIGHT_X + 1; x++) {
                 Loc test = new Loc(x, y);
                 if (currentElfLocations.contains(test)) {
-//                    System.out.print(elvestByLocation.get(test));
                     System.out.print("#");
                 }
                 else {
