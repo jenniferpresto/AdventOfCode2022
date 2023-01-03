@@ -22,10 +22,12 @@ public class Day25 {
         for (String line : data) {
             total += convertToDecimal(line);
         }
-        convertToSnafu(total);
+        String snafu = convertToSnafu(total);
+        String base5 = convertToBaseFive(total);
+        System.out.println("Answer is " + snafu + ", which, for fun, is " + base5 + " in base 5");
     }
 
-    private static void convertToSnafu(final long normal) {
+    private static String convertToSnafu(final long normal) {
         Map<Long, String> snafuDigits = new HashMap<>();
         snafuDigits.put(2L, "2");
         snafuDigits.put(1L, "1");
@@ -39,7 +41,7 @@ public class Day25 {
             remainingValue = (long)Math.floor((remainingValue + 2) / 5);
             snafuNum = snafuDigits.get(remainder) + snafuNum;
         }
-        System.out.println(snafuNum);
+        return snafuNum;
     }
 
 
@@ -69,7 +71,6 @@ public class Day25 {
             normal = (long)Math.floor(normal / 5);
             baseFive = remainder + baseFive;
         }
-        System.out.println(baseFive);
         return baseFive;
     }
 }
