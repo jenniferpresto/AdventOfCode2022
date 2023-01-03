@@ -10,7 +10,7 @@ import java.util.Scanner;
 public class Day25 {
     public static void main(String[] args) {
         List<String> data = new ArrayList<>();
-        try (final Scanner scanner = new Scanner(new File("testData/Day25.txt"))) {
+        try (final Scanner scanner = new Scanner(new File("data/Day25.txt"))) {
             while (scanner.hasNext()) {
                 data.add(scanner.nextLine());
             }
@@ -18,27 +18,14 @@ public class Day25 {
             System.out.println("Oops... " + e.getMessage());
             return;
         }
-//        for (String line : data) {
-////            convertToDecimal(line);
-//            convertToBaseFive(convertToDecimal(line));
-//        }
-        convertToSnafu(4L);
+        long total = 0L;
+        for (String line : data) {
+            total += convertToDecimal(line);
+        }
+        convertToSnafu(total);
     }
 
     private static void convertToSnafu(final long normal) {
-        long power = 0;
-        double log = Math.ceil(Math.log(125.0) / Math.log(5.0));
-        System.out.println(log);
-        //  find the left-most place of the snafu number
-        long placeMax = 0L;
-        while(true) {
-            placeMax = 2 * (long)Math.pow(5, power);
-            if (normal > placeMax) {
-                power++;
-            } else {
-                break;
-            }
-        }
         Map<Long, String> snafuDigits = new HashMap<>();
         snafuDigits.put(2L, "2");
         snafuDigits.put(1L, "1");
@@ -52,7 +39,6 @@ public class Day25 {
             remainingValue = (long)Math.floor((remainingValue + 2) / 5);
             snafuNum = snafuDigits.get(remainder) + snafuNum;
         }
-        System.out.println(power);
         System.out.println(snafuNum);
     }
 
