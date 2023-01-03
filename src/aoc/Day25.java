@@ -2,7 +2,9 @@ package aoc;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 
 public class Day25 {
@@ -17,12 +19,45 @@ public class Day25 {
             return;
         }
 //        for (String line : data) {
-//            convertToDigital(line);
+////            convertToDecimal(line);
+//            convertToBaseFive(convertToDecimal(line));
 //        }
-        convertToBaseFive(24);
+        convertToSnafu(4L);
     }
 
-    private static long convertToDigital(final String snafu) {
+    private static void convertToSnafu(final long normal) {
+        long power = 0;
+        double log = Math.ceil(Math.log(125.0) / Math.log(5.0));
+        System.out.println(log);
+        //  find the left-most place of the snafu number
+        long placeMax = 0L;
+        while(true) {
+            placeMax = 2 * (long)Math.pow(5, power);
+            if (normal > placeMax) {
+                power++;
+            } else {
+                break;
+            }
+        }
+        Map<Long, String> snafuDigits = new HashMap<>();
+        snafuDigits.put(2L, "2");
+        snafuDigits.put(1L, "1");
+        snafuDigits.put(0L, "0");
+        snafuDigits.put(-1L, "-");
+        snafuDigits.put(-2L, "=");
+        long remainingValue = normal;
+        String snafuNum = "";
+        while (remainingValue > 0) {
+            final long remainder = ((remainingValue + 2) % 5) - 2;
+            remainingValue = (long)Math.floor((remainingValue + 2) / 5);
+            snafuNum = snafuDigits.get(remainder) + snafuNum;
+        }
+        System.out.println(power);
+        System.out.println(snafuNum);
+    }
+
+
+    private static long convertToDecimal(final String snafu) {
         long place = 1L;
         long value = 0L;
         for (int i = snafu.length() - 1; i > -1; i--) {
@@ -38,7 +73,6 @@ public class Day25 {
             value += mult * place;
             place *= 5;
         }
-        System.out.println(value);
         return value;
     }
 
