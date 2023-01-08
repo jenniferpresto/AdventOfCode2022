@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -11,7 +12,6 @@ import java.util.Scanner;
 import java.util.Set;
 
 public class Day18 {
-    private static int stackSize = 0;
     private static int MIN_X = Integer.MAX_VALUE;
     private static int MIN_Y = Integer.MAX_VALUE;
     private static int MIN_Z = Integer.MAX_VALUE;
@@ -57,8 +57,6 @@ public class Day18 {
 
         int numAdjacentCubes = 0;
         int numSidesTouchingOutsideAir = 0;
-        boolean isLava = true;
-        boolean isAirPocket = false;
         boolean isTested = false;
 
         Cube(Loc loc) {
@@ -95,19 +93,18 @@ public class Day18 {
             if (o == null || o.getClass() != getClass()) return false;
             Cube other = (Cube)o;
             return this.loc.equals(other.loc)
-                    && this.isLava == other.isLava
                     && this.isTested == other.isTested;
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(this.loc, this.isLava, this.isTested);
+            return Objects.hash(this.loc, this.isTested);
         }
     }
 
     public static void main(String[] args) {
         List<String> data = new ArrayList<>();
-        try (final Scanner scanner = new Scanner(new File("testData/Day18.txt"))) {
+        try (final Scanner scanner = new Scanner(new File("data/Day18.txt"))) {
             while (scanner.hasNext()) {
                 data.add(scanner.nextLine());
             }
@@ -165,7 +162,6 @@ public class Day18 {
                     Loc loc = new Loc(x, y, z);
                     Cube cube = new Cube(loc);
                     if (!lavaSet.contains(cube)) {
-                        cube.isLava = false;
                         airMap.put(loc, cube);
                     } else {
                         numDupes++;
@@ -180,14 +176,30 @@ public class Day18 {
         for (Cube cube : lavaList) {
             totalExposedSides += (6 - cube.numAdjacentCubes);
         }
-        System.out.println("Number exposed sides: " + totalExposedSides);
+        System.out.println("Part 1: Number exposed sides: " + totalExposedSides);
 
-
+        //  Part 2
         Cube startCube = airMap.get(firstLoc);
         if (startCube == null) {
             System.out.println("Something has gone wrong");
         }
-        floodFill(startCube, airMap);
+//        floodFill(startCube, airMap);
+        LinkedList<Cube> testedCubes = new LinkedList<>();
+        LinkedList<Cube> untestedCubes = new LinkedList<>();
+        untestedCubes.add(startCube);
+        while(!untestedCubes.isEmpty()) {
+            Cube testCube = untestedCubes.removeFirst();
+
+            testCube.isTested = true;
+            testedCubes.add(testCube);
+
+            for (Loc loc : testCube.getAdjacentLocations()) {
+                if (!airMap.containsKey(loc)) continue;
+                if (testedCubes.contains(airMap.get(loc)) || untestedCubes.contains(airMap.get(loc))) continue;
+                Cube nextCube = airMap.get(loc);
+                untestedCubes.add(nextCube);
+            }
+        }
 
         Set<Loc> locOfOutsideAir = new HashSet<>();
         for (Map.Entry<Loc, Cube> airCubeEntry : airMap.entrySet()) {
@@ -209,17 +221,13 @@ public class Day18 {
         System.out.println("Outside surface area: " + totalOutsideSurfaceArea);
     }
 
-    //  flood-fill to find all air cubes touches the outside of the lava blob
+    //  recursive flood-fill method for air cubes
     static private void floodFill(Cube startCube, Map<Loc, Cube> airCubes) {
-        System.out.println("Stack size: " + stackSize);
-        stackSize++;
         //  if we've already tested this cube, stop
         if (startCube.isTested) {
-            stackSize--;
             return;
         }
 
-//        System.out.println("Testing: " + startCube);
         startCube.isTested = true;
 
         for (int i = 0; i < 6; i++) {
@@ -230,6 +238,5 @@ public class Day18 {
             Cube newStart = airCubes.get(newStartLoc);
             floodFill(newStart, airCubes);
         }
-        stackSize--;
     }
 }
