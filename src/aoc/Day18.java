@@ -2,14 +2,15 @@ package aoc;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Scanner;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class Day18 {
     private static int MIN_X = Integer.MAX_VALUE;
@@ -56,8 +57,6 @@ public class Day18 {
         final Loc loc;
 
         int numAdjacentCubes = 0;
-        int numSidesTouchingOutsideAir = 0;
-        boolean isTested = false;
 
         Cube(Loc loc) {
             this.loc = loc;
@@ -85,20 +84,19 @@ public class Day18 {
 
         @Override
         public String toString() {
-            return "(" + this.loc.x + "," + this.loc.y + "," + this.loc.z + "), tested? " + isTested;
+            return "(" + this.loc.x + "," + this.loc.y + "," + this.loc.z + ")";
         }
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
             if (o == null || o.getClass() != getClass()) return false;
             Cube other = (Cube)o;
-            return this.loc.equals(other.loc)
-                    && this.isTested == other.isTested;
+            return this.loc.equals(other.loc);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(this.loc, this.isTested);
+            return Objects.hash(this.loc);
         }
     }
 
@@ -142,6 +140,7 @@ public class Day18 {
             }
         }
 
+        //  Part one: test for adjacent cubes
         for (int i = 0; i < lavaList.size(); i++) {
             for (int j = i+1; j < lavaList.size(); j++) {
                 if (lavaList.get(i).isAdjacent(lavaList.get(j))) {
@@ -151,92 +150,65 @@ public class Day18 {
             }
         }
 
-        //  create barriers one cube larger than the lava blob
-        Map<Loc, Cube> airMap = new HashMap<>();
-        int numDupes = 0;
-        //  fill in the missing cubes within the barrier
-        Loc firstLoc = new Loc(MIN_X - 1, MIN_Y - 1, MIN_Z - 1);
-        for (int x = firstLoc.x; x < MAX_X + 2; x++) {
-            for (int y = firstLoc.y; y < MAX_Y + 2; y++) {
-                for (int z = firstLoc.z; z < MAX_Z + 2; z++) {
-                    Loc loc = new Loc(x, y, z);
-                    Cube cube = new Cube(loc);
-                    if (!lavaSet.contains(cube)) {
-                        airMap.put(loc, cube);
-                    } else {
-                        numDupes++;
-                    }
-                }
-            }
-        }
-        System.out.println("Dupes: " + numDupes);
-
-
         int totalExposedSides = 0;
         for (Cube cube : lavaList) {
             totalExposedSides += (6 - cube.numAdjacentCubes);
         }
         System.out.println("Part 1: Number exposed sides: " + totalExposedSides);
 
-        //  Part 2
-        Cube startCube = airMap.get(firstLoc);
-        if (startCube == null) {
-            System.out.println("Something has gone wrong");
-        }
-//        floodFill(startCube, airMap);
-        LinkedList<Cube> testedCubes = new LinkedList<>();
-        LinkedList<Cube> untestedCubes = new LinkedList<>();
-        untestedCubes.add(startCube);
-        while(!untestedCubes.isEmpty()) {
-            Cube testCube = untestedCubes.removeFirst();
+        //  Part two: test air pockets
+        //  create a larger blob completely surrounding lava blob to fill with air
 
-            testCube.isTested = true;
-            testedCubes.add(testCube);
+        Date startTime = new Date(); // just curious
+
+        Map<Loc, Cube> allAirCubes = new HashMap<>();
+        //  fill in the missing cubes within the larger cube
+        Loc firstLoc = new Loc(MIN_X - 1, MIN_Y - 1, MIN_Z - 1);
+        for (int x = firstLoc.x; x < MAX_X + 2; x++) {
+            for (int y = firstLoc.y; y < MAX_Y + 2; y++) {
+                for (int z = firstLoc.z; z < MAX_Z + 2; z++) {
+                    Loc loc = new Loc(x, y, z);
+                    Cube cube = new Cube(loc);
+                    //  if it's not lava, it's air
+                    if (!lavaSet.contains(cube)) {
+                        allAirCubes.put(loc, cube);
+                    }
+                }
+            }
+        }
+
+        Cube startCube = allAirCubes.get(firstLoc);
+        Set<Cube> outsideAirCubes = new HashSet<>();
+        Set<Cube> untestedOutsideAirCubes = new HashSet<>();
+        untestedOutsideAirCubes.add(startCube);
+
+        while(!untestedOutsideAirCubes.isEmpty()) {
+            Cube testCube = untestedOutsideAirCubes.stream().findFirst().get();
+            untestedOutsideAirCubes.remove(testCube);
+            outsideAirCubes.add(testCube);
 
             for (Loc loc : testCube.getAdjacentLocations()) {
-                if (!airMap.containsKey(loc)) continue;
-                if (testedCubes.contains(airMap.get(loc)) || untestedCubes.contains(airMap.get(loc))) continue;
-                Cube nextCube = airMap.get(loc);
-                untestedCubes.add(nextCube);
+                if (!allAirCubes.containsKey(loc)) continue;
+                if (outsideAirCubes.contains(allAirCubes.get(loc))) continue;
+                Cube nextCube = allAirCubes.get(loc);
+                untestedOutsideAirCubes.add(nextCube);
             }
         }
 
-        Set<Loc> locOfOutsideAir = new HashSet<>();
-        for (Map.Entry<Loc, Cube> airCubeEntry : airMap.entrySet()) {
-            if (airCubeEntry.getValue().isTested) {
-                locOfOutsideAir.add(airCubeEntry.getValue().loc);
-            }
-        }
-        System.out.println("Num air cubes in air pockets: " + (airMap.size() - locOfOutsideAir.size()));
+        Set<Loc> locOfOutsideAir = outsideAirCubes.stream().map(c -> c.loc).collect(Collectors.toSet());
+        System.out.println("Num air cubes in air pockets: " + (allAirCubes.size() - locOfOutsideAir.size()));
 
         int totalOutsideSurfaceArea = 0;
         for (Cube lavaCube : lavaList) {
             for (Loc adjLoc : lavaCube.getAdjacentLocations()) {
                 if (locOfOutsideAir.contains(adjLoc)) {
-                    lavaCube.numSidesTouchingOutsideAir++;
+                    totalOutsideSurfaceArea++;
                 }
             }
-            totalOutsideSurfaceArea += lavaCube.numSidesTouchingOutsideAir;
         }
         System.out.println("Outside surface area: " + totalOutsideSurfaceArea);
-    }
-
-    //  recursive flood-fill method for air cubes
-    static private void floodFill(Cube startCube, Map<Loc, Cube> airCubes) {
-        //  if we've already tested this cube, stop
-        if (startCube.isTested) {
-            return;
-        }
-
-        startCube.isTested = true;
-
-        for (int i = 0; i < 6; i++) {
-            Loc newStartLoc = new Loc(startCube.loc.x + X_TRANSLATIONS[i], startCube.loc.y + Y_TRANSLATIONS[i], startCube.loc.z + Z_TRANSLATIONS[i]);
-            //  if we're outside the barrier, stop
-            if (!airCubes.containsKey(newStartLoc)) continue;
-
-            Cube newStart = airCubes.get(newStartLoc);
-            floodFill(newStart, airCubes);
-        }
+        Date endTime = new Date();
+        long elapsed = endTime.getTime() - startTime.getTime();
+        System.out.println("Elapsed time for part 2: " + elapsed);
     }
 }
